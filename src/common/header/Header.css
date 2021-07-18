@@ -1,0 +1,26 @@
+.app-header {
+    background-color: rgb(20, 20, 20);
+    height: 36px;
+    padding: 8px 32px 8px 16px;
+}
+
+.app-logo { 
+    height: 35px;    
+}
+
+.dispNone {
+    display: none;
+}
+
+.dispBlock {
+    display: block;
+}
+
+.red {
+    color: red;
+}
+
+.tabs {
+    margin-bottom: 20px;
+}
+

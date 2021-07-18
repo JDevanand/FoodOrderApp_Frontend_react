@@ -1,0 +1,23 @@
+*{
+    box-sizing: border-box;
+}
+
+.flex-container {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.card{
+    max-width: 0.225vw;
+}
+
+.gridListMain {
+    transform: translateZ(0);
+    cursor: pointer
+}
+
+.restaurantRating{
+    background-color: #ffd000ea;    
+    padding: 1px;
+    max-width: max-content;
+}

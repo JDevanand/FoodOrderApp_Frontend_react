@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import './Checkout.css';
+import './Profile.css';
 import Header from '../../common/header/Header';
 
 
-class Checkout extends Component {
+class Profile extends Component {
 
 
     constructor() {
@@ -17,10 +17,10 @@ class Checkout extends Component {
         return(
                <div>
                     <Header/>
-                   Checkout page                  
+                   Profile page                  
                </div>     
         )
     }
 }
 
-export default Checkout;
+export default Profile;
