@@ -1,0 +1,18 @@
+.restaurantDetails{
+
+    background-color: grey;
+    display: flex;    
+    flex-direction: row;
+
+}
+
+.ratingAndAvgPrice{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.menuAndCart{
+    display: flex;
+    justify-content: space-between;
+}

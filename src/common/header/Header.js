@@ -297,6 +297,8 @@ class Header extends Component {
                 <header className="app-header">
                     <img src={logo} className="app-logo" alt="fastfood App Logo" />
 
+                    
+
                     {!this.state.loggedIn ?
                         <div className="login-button">
                             <Button variant="contained" color="default" onClick={this.openModalHandler}>
