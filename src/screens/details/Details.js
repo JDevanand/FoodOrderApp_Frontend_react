@@ -3,6 +3,14 @@ import './Details.css';
 import Header from '../../common/header/Header';
 
 import Typography from '@material-ui/core/Typography';
+import Divider from '@material-ui/core/Divider';
+import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
+import Icon from '@material-ui/core/Icon';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
 
 class Details extends Component {
 
@@ -65,7 +73,7 @@ class Details extends Component {
 
                             <div className="rating">
                                 <div>
-                                    <i class="fa fa-star" aria-hidden="true"></i>{restaurant.customer_rating}
+                                    <Icon className="fa fa-star" aria-hidden="true"/>{restaurant.customer_rating}
                                 </div>
                                 <div>
                                     <Typography variant="headline" component="h2">AVERAGE RATING BY {restaurant.number_customers_rated} CUSTOMERS </Typography>
@@ -74,13 +82,13 @@ class Details extends Component {
 
                             <div className="avgPrice">
                                 <div>
-                                <i class="fa fa-inr" aria-hidden="true"></i>{restaurant.average_price}
+                                <Icon className="fa fa-inr" aria-hidden="true"/>{restaurant.average_price}
                                 </div>
 
                                 <div>
-                                <Typography variant="headline" component="h2">AVERAGE COST FOR TWO PEOPLE</Typography>
+                                    <Typography variant="headline" component="h2">AVERAGE COST FOR TWO PEOPLE</Typography>
                                 </div>
-                            </div>                            
+                            </div>
                         </div>
 
                     </div>
@@ -88,13 +96,42 @@ class Details extends Component {
                 </div>
 
                 <div className="menuAndCart">
-                    <div className="menu">
+                    <Grid container justifyContent="space-between">
+                        <Grid item xs={12} md={5}>
+                            <Typography variant="h6" className={classes.title}>
+                                Category Name in light text
+                            </Typography>
+                            <div className="menu-item">
+                                <List>
+                                    {generate(
+                                        <ListItem>       
+                                        <ListItemIcon>
+                                          <FolderIcon/>
+                                        </ListItemIcon>                                               
+                                        <ListItemText
+                                          primary="Single-line item"                                   
+                                        />
+                                        <ListItemText
+                                          primary="Price"                   
+                                          
+                                        />
+                                         <IconButton edge="end" aria-label="delete">
+                                            <AddIcon />
+                                          </IconButton> 
+                                      </ListItem>,
+                                    )}
+                                </List>
+                            </div>
+                        </Grid>
 
-                    </div>
+                        <Grid item xs={12} md={5}>
+                            <Card className="cart">
+                                
 
-                    <div className="cart">
+                            </Card>
+                        </Grid>
+                    </Grid>
 
-                    </div>
                 </div>
 
             </div>

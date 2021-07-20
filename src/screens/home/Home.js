@@ -45,7 +45,6 @@ class Home extends Component {
         return (
             <div>
                 <Header />
-
                 <div className="flex-container">
                     {this.state.restaurants.map(restaurant => (
                         <Card className="card" key={"home" + restaurant.id} onClick={() => this.restaurantClickHandler(restaurant.id)}>
