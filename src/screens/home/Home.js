@@ -7,6 +7,7 @@ import CardActionArea from '@material-ui/core/CardActionArea';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
+import Icon from '@material-ui/core/Icon';
 
 import 'font-awesome/css/font-awesome.min.css';
 
@@ -67,11 +68,11 @@ class Home extends Component {
                                     <br/>
                                     <Typography variant="body2" color="textSecondary" component="p">
                                         <div className="restaurantRating">
-                                        <i class="fa fa-star" aria-hidden="true"></i>
+                                        <Icon className="fa fa-star" aria-hidden="true" />
                                         {restaurant.customer_rating}({restaurant.number_customers_rated})
                                         </div>
                                         <div>
-                                        <i class="fa fa-inr" aria-hidden="true"></i>
+                                        <Icon className="fa fa-inr" aria-hidden="true"/>
                                         {restaurant.average_price} for two
                                         </div>
                                     </Typography>
