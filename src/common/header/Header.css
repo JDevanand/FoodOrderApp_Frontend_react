@@ -1,11 +1,17 @@
-.app-header {
+.appBar{
+    flex-grow: 1;
+    color:white;
     background-color: rgb(20, 20, 20);
     height: 36px;
     padding: 8px 32px 8px 16px;
 }
 
-.app-logo { 
-    height: 35px;    
+.logo { 
+    color: white;  
+}
+
+.searhIcon{
+    color: white;  
 }
 
 .dispNone {

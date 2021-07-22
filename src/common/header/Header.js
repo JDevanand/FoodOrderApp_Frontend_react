@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
 import './Header.css';
 
-import logo from '../../assets/fastfood_white_24dp.svg';
+
+import FastfoodIcon from '@material-ui/icons/Fastfood';
+import SearchIcon from '@material-ui/icons/Search';
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
 import accountlogo from '../../assets/account_circle_black_24dp.svg';
 import profilelogo from '../../assets/account_circle_white_24dp.svg';
 import Button from '@material-ui/core/Button';
-import Modal from '@material-ui/core/Modal';
+import Modal from 'react-modal';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
@@ -246,24 +250,24 @@ class Header extends Component {
         xhrSignup.send(dataSignup);
     }
 
-    profileClickHandler= (event) => {
+    profileClickHandler = (event) => {
         this.setState({
-           profileButtonMenu:event.currentTarget
-           });
+            profileButtonMenu: event.currentTarget
+        });
     }
 
-    handleProfileMenuClose= () => {
+    handleProfileMenuClose = () => {
         this.setState({
-         profileButtonMenu:null
-         });
-    }     
-          
-    handleProfileMenuItemClick = ()=>{
-     
-        this.props.history.push('/profile');
-     
+            profileButtonMenu: null
+        });
     }
-     
+
+    handleProfileMenuItemClick = () => {
+
+        this.props.history.push('/profile');
+
+    }
+
     handleLoginSbarClose = () => {
         this.setState({
             openLoginSuccessSnackBar: false
@@ -294,37 +298,49 @@ class Header extends Component {
     render() {
         return (
             <div>
-                <header className="app-header">
-                    <img src={logo} className="app-logo" alt="fastfood App Logo" />
 
+                <div className="appBar">
                     
+                        <Toolbar>
+                            <IconButton edge="start" className="logo" color="inherit" aria-label="menu">
+                                <FastfoodIcon />
+                            </IconButton>
 
-                    {!this.state.loggedIn ?
-                        <div className="login-button">
-                            <Button variant="contained" color="default" onClick={this.openModalHandler}>
-                                <img src={accountlogo} className="account-logo" alt="account Logo" />Login
-                            </Button>
-                        </div>
-                        :
-                        <div className="profile-button">
-                            <Button variant="contained" color="default" aria-controls="simple-menu" onClick={this.profileClickHandler}>
-                                <img src={profilelogo} className="profile-logo" alt="profile Logo" />
-                                {this.state.customerFirstName}
-                            </Button>
-                            <Menu
-                                id="simple-menu"
-                                anchorEl={this.state.profileButtonMenu}
-                                keepMounted
-                                open={Boolean(this.state.profileButtonMenu)}
-                                onClose={this.handleProfileMenuClose}
-                            >
-                                <MenuItem onClick={this.handleProfileMenuClick}>Profile</MenuItem>
-                                <MenuItem onClick={this.logoutHandler}>Logout</MenuItem>
-                            </Menu>
-                        </div>
-                    }
+                            {(this.props.showSearchBar) &&
+                                <FormControl>                                    
+                                    <SearchIcon />                               
+                                    <Input id="username" type="text" username={this.state.username}
+                                        onChange={this.inputUsernameChangeHandler} placeholder="Search by Restaurant Name" />
+                                </FormControl>
+                            }
 
-                </header>
+                            {!this.state.loggedIn ?
+                                <div className="login-button">
+                                    <Button edge="end" variant="contained" color="default" onClick={this.openModalHandler}>
+                                        <img src={accountlogo} className="account-logo" alt="account Logo" />Login
+                                    </Button>
+                                </div>
+                                :
+                                <div className="profile-button">
+                                    <Button edge="end" variant="contained" color="default" aria-controls="simple-menu" onClick={this.profileClickHandler}>
+                                        <img src={profilelogo} className="profile-logo" alt="profile Logo" />
+                                        {this.state.customerFirstName}
+                                    </Button>
+                                    <Menu
+                                        id="simple-menu"
+                                        anchorEl={this.state.profileButtonMenu}
+                                        keepMounted
+                                        open={Boolean(this.state.profileButtonMenu)}
+                                        onClose={this.handleProfileMenuClose}
+                                    >
+                                        <MenuItem onClick={this.handleProfileMenuClick}>Profile</MenuItem>
+                                        <MenuItem onClick={this.logoutHandler}>Logout</MenuItem>
+                                    </Menu>
+                                </div>
+                            }
+                        </Toolbar>
+               
+                </div>
 
                 <Modal
                     ariaHideApp={false}

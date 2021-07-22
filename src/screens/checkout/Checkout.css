@@ -1,3 +1,7 @@
+.checkout{
+    display: flex;
+}
+
 .red{
     color:red;
 }
