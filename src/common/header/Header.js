@@ -4,8 +4,6 @@ import './Header.css';
 
 import FastfoodIcon from '@material-ui/icons/Fastfood';
 import SearchIcon from '@material-ui/icons/Search';
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
 import accountlogo from '../../assets/account_circle_black_24dp.svg';
 import profilelogo from '../../assets/account_circle_white_24dp.svg';
 import Button from '@material-ui/core/Button';
@@ -24,7 +22,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import Snackbar from '@material-ui/core/Snackbar';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
-
+import Icon from '@material-ui/core/Icon';
 
 const customStyles = {
     content: {
@@ -52,7 +50,6 @@ TabContainer.propTypes = {
 
 class Header extends Component {
 
-
     constructor() {
         super();
         this.state = {
@@ -60,14 +57,13 @@ class Header extends Component {
             customerFirstName: "",
 
             modalIsOpen: false,
-            value: 0,
+            tabChangeValue: 0,
             usernameRequired: "dispNone",
             username: "",
             loginPasswordRequired: "dispNone",
             loginPassword: "",
             firstnameRequired: "dispNone",
             firstname: "",
-            lastnameRequired: "dispNone",
             lastname: "",
             emailRequired: "dispNone",
             email: "",
@@ -77,8 +73,8 @@ class Header extends Component {
             contact: "",
             registrationSuccess: false,
 
-            openLoginSuccessSnackBar: false,
-            logInStatus: "",
+            openSnackBar: false,
+            snackBarMessage: "",
 
             openSignUpSuccessSnackBar: false,
             signUpStatus: "",
@@ -90,14 +86,13 @@ class Header extends Component {
     openModalHandler = () => {
         this.setState({
             modalIsOpen: true,
-            value: 0,
+            tabChangeValue: 0,
             usernameRequired: "dispNone",
             username: "",
             loginPasswordRequired: "dispNone",
             loginPassword: "",
             firstnameRequired: "dispNone",
             firstname: "",
-            lastnameRequired: "dispNone",
             lastname: "",
             emailRequired: "dispNone",
             email: "",
@@ -113,7 +108,7 @@ class Header extends Component {
     }
 
     tabChangeHandler = (event, value) => {
-        this.setState({ value });
+        this.setState({ tabChangeValue:value });
     }
 
     inputUsernameChangeHandler = (e) => {
@@ -133,26 +128,23 @@ class Header extends Component {
         let that = this;
         xhrLogin.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
-                //sessionStorage.setItem("uuid", JSON.parse(this.responseText).id);
 
-                if (xhrLogin.getStatusLine().getStatusCode() === 200) {
-                    sessionStorage.setItem("access-token", xhrLogin.getResponseHeader("access-token"));
+                var response = JSON.parse(this.responseText);
+                    if (xhrLogin.status === 200) {
+                        sessionStorage.setItem("access-token", xhrLogin.getResponseHeader("access-token"));                        
+                        that.setState({
+                            loggedIn: true,
+                            customerFirstName: response.first_name,
+                            snackBarMessage: response.message,
+                            openSnackBar: true
+                        });             
+                    }
 
-                    that.setState({
-                        loggedIn: true,
-                        customerFirstName: JSON.parse(this.responseText).first_name,
-                        openLoginSuccessSnackBar: true,
-                        logInStatus: ""
-                    });
-
-                    that.closeModalHandler();
-                }
-
-                if (xhrLogin.getStatusLine().getStatusCode() !== 200) {
-                    that.setState({
-                        logInStatus: JSON.parse(this.responseText).message
-                    });
-                }
+                    if (xhrLogin.status !== 200) {
+                        that.setState({
+                            snackBarMessage: response.message
+                        });
+                    }          
 
             }
         });
@@ -165,9 +157,8 @@ class Header extends Component {
 
 
     logoutHandler = (e) => {
-        //sessionStorage.removeItem("uuid");
 
-        //<<have to send logout request to server>>>>>>>>>>>     
+        //<<have to send logout request to server>>>    
         let dataLogout = null;
         let xhrLogout = new XMLHttpRequest();
         let that = this;
@@ -210,7 +201,6 @@ class Header extends Component {
 
     registerClickHandler = () => {
         this.state.firstname === "" ? this.setState({ firstnameRequired: "dispBlock" }) : this.setState({ firstnameRequired: "dispNone" });
-        this.state.lastname === "" ? this.setState({ lastnameRequired: "dispBlock" }) : this.setState({ lastnameRequired: "dispNone" });
         this.state.email === "" ? this.setState({ emailRequired: "dispBlock" }) : this.setState({ emailRequired: "dispNone" });
         this.state.registerPassword === "" ? this.setState({ registerPasswordRequired: "dispBlock" }) : this.setState({ registerPasswordRequired: "dispNone" });
         this.state.contact === "" ? this.setState({ contactRequired: "dispBlock" }) : this.setState({ contactRequired: "dispNone" });
@@ -227,28 +217,36 @@ class Header extends Component {
         let that = this;
         xhrSignup.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
-                if (xhrSignup.getStatusLine().getStatusCode() === 200) {
-                    that.setState({
-                        registrationSuccess: true
+
+                let response = JSON.parse(this.responseText);
+                if (xhrSignup.status === 201) {
+                    that.setState({                        
+                        snackBarMessage: "Registered successfully! Please login now!",
+                        openSnackBar: true,
+                        tabChangeValue:0
                     });
                 }
 
-                if (xhrSignup.getStatusLine().getStatusCode() !== 200) {
+                if (xhrSignup.status !== 201) {
                     that.setState({
-                        signUpStatus: JSON.parse(this.responseText).message
+                        signUpStatus: response.message,
+                        snackBarMessage: response.message,
+                        openSnackBar: true
                     });
                 }
-
             }
-
-
         });
 
         xhrSignup.open("POST", this.props.baseUrl + "customer/signup");
         xhrSignup.setRequestHeader("Content-Type", "application/json");
-        xhrSignup.setRequestHeader("Cache-Control", "no-cache");
         xhrSignup.send(dataSignup);
     }
+
+    inputSearchRestaurantHandler=(event)=>{
+        //code for handling search restaurant by name
+        this.props.onNameSearch(event.target.value);
+    }
+
 
     profileClickHandler = (event) => {
         this.setState({
@@ -263,20 +261,19 @@ class Header extends Component {
     }
 
     handleProfileMenuItemClick = () => {
-
         this.props.history.push('/profile');
-
     }
 
     handleLoginSbarClose = () => {
         this.setState({
-            openLoginSuccessSnackBar: false
+            openSnackBar: false
         });
     }
 
+    
     handleSignupSbarClose = () => {
         this.setState({
-            openSignUpSuccessSnackBar: false,
+            openSnackBar: false,
             value: 0,
             usernameRequired: "dispNone",
             username: "",
@@ -298,48 +295,46 @@ class Header extends Component {
     render() {
         return (
             <div>
-
                 <div className="appBar">
-                    
-                        <Toolbar>
-                            <IconButton edge="start" className="logo" color="inherit" aria-label="menu">
-                                <FastfoodIcon />
-                            </IconButton>
 
-                            {(this.props.showSearchBar) &&
-                                <FormControl>                                    
-                                    <SearchIcon />                               
-                                    <Input id="username" type="text" username={this.state.username}
-                                        onChange={this.inputUsernameChangeHandler} placeholder="Search by Restaurant Name" />
-                                </FormControl>
-                            }
+                    <IconButton edge="start" className="logo" color="inherit" aria-label="menu">
+                        <FastfoodIcon />
+                    </IconButton>
 
-                            {!this.state.loggedIn ?
-                                <div className="login-button">
-                                    <Button edge="end" variant="contained" color="default" onClick={this.openModalHandler}>
-                                        <img src={accountlogo} className="account-logo" alt="account Logo" />Login
-                                    </Button>
-                                </div>
-                                :
-                                <div className="profile-button">
-                                    <Button edge="end" variant="contained" color="default" aria-controls="simple-menu" onClick={this.profileClickHandler}>
-                                        <img src={profilelogo} className="profile-logo" alt="profile Logo" />
-                                        {this.state.customerFirstName}
-                                    </Button>
-                                    <Menu
-                                        id="simple-menu"
-                                        anchorEl={this.state.profileButtonMenu}
-                                        keepMounted
-                                        open={Boolean(this.state.profileButtonMenu)}
-                                        onClose={this.handleProfileMenuClose}
-                                    >
-                                        <MenuItem onClick={this.handleProfileMenuClick}>Profile</MenuItem>
-                                        <MenuItem onClick={this.logoutHandler}>Logout</MenuItem>
-                                    </Menu>
-                                </div>
-                            }
-                        </Toolbar>
-               
+                    <div className="searchBar"></div>
+                    {(this.props.showSearchBar) &&
+                        <FormControl className="searchBar">
+                            <Icon className="searchIcon"><SearchIcon /> </Icon>
+                            <Input id="searchField" type="text" 
+                                onChange={this.inputSearchRestaurantHandler} placeholder="Search by Restaurant Name" />
+                        </FormControl>
+                    }
+                    <div className="searchBar"></div>
+
+                    {!this.state.loggedIn ?
+                        <div className="login-button">
+                            <Button variant="contained" color="default" onClick={this.openModalHandler}>
+                                <img src={accountlogo} className="account-logo" alt="account Logo" />Login
+                            </Button>
+                        </div>
+                        :
+                        <div className="profile-button">
+                            <Button variant="contained" color="default" aria-controls="simple-menu" onClick={this.profileClickHandler}>
+                                <img src={profilelogo} className="profile-logo" alt="profile Logo" />
+                                {this.state.customerFirstName}
+                            </Button>
+                            <Menu
+                                id="simple-menu"
+                                anchorEl={this.state.profileButtonMenu}
+                                keepMounted
+                                open={Boolean(this.state.profileButtonMenu)}
+                                onClose={this.handleProfileMenuClose}
+                            >
+                                <MenuItem onClick={this.handleProfileMenuClick}>Profile</MenuItem>
+                                <MenuItem onClick={this.logoutHandler}>Logout</MenuItem>
+                            </Menu>
+                        </div>
+                    }
                 </div>
 
                 <Modal
@@ -354,7 +349,7 @@ class Header extends Component {
                         <Tab label="SignUp" />
                     </Tabs>
 
-                    {this.state.value === 0 &&
+                    {this.state.tabChangeValue === 0 &&
                         <TabContainer>
                             <FormControl required>
                                 <InputLabel htmlFor="username">Contact No.</InputLabel>
@@ -381,31 +376,12 @@ class Header extends Component {
                                 </FormControl>
                             }
 
-
-                            <Snackbar
-                                anchorOrigin={{
-                                    vertical: 'bottom',
-                                    horizontal: 'left',
-                                }}
-                                open={this.state.openLoginSuccessSnackBar}
-                                autoHideDuration={6000}
-                                onClose={this.handleLoginSbarClose}
-                                message="Logged in successfully!"
-                                action={
-                                    <React.Fragment>
-                                        <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleLoginSbarClose}>
-                                            <CloseIcon fontSize="small" />
-                                        </IconButton>
-                                    </React.Fragment>
-                                }
-                            />
-
                             <br /><br />
                             <Button variant="contained" color="primary" onClick={this.loginClickHandler}>LOGIN</Button>
                         </TabContainer>
                     }
 
-                    {this.state.value === 1 &&
+                    {this.state.tabChangeValue === 1 &&
                         <TabContainer>
                             <FormControl required>
                                 <InputLabel htmlFor="firstname">First Name</InputLabel>
@@ -415,12 +391,9 @@ class Header extends Component {
                                 </FormHelperText>
                             </FormControl>
                             <br /><br />
-                            <FormControl required>
+                            <FormControl>
                                 <InputLabel htmlFor="lastname">Last Name</InputLabel>
                                 <Input id="lastname" type="text" lastname={this.state.lastname} onChange={this.inputLastNameChangeHandler} />
-                                <FormHelperText className={this.state.lastnameRequired}>
-                                    <span className="red">required</span>
-                                </FormHelperText>
                             </FormControl>
                             <br /><br />
                             <FormControl required>
@@ -478,6 +451,24 @@ class Header extends Component {
                         </TabContainer>
                     }
                 </Modal>
+
+                <Snackbar
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    open={this.state.openSnackBar}
+                    autoHideDuration={6000}
+                    onClose={this.handleLoginSbarClose}
+                    message={this.state.snackBarMessage}
+                    action={
+                        <React.Fragment>
+                            <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleLoginSbarClose}>
+                                <CloseIcon fontSize="small" />
+                            </IconButton>
+                        </React.Fragment>
+                    }
+                />
             </div>
         )
     }

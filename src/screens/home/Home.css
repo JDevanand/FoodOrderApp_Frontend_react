@@ -2,13 +2,20 @@
     box-sizing: border-box;
 }
 
-.flex-container {
-    display: flex;
-    justify-content: space-evenly;
+.flex-container{
+    display:flex;
+    flex-wrap: wrap;    
+    justify-content:flex-start;
+    margin:2px;
 }
 
+.flex-container:empty:after {
+    content: 'No restaurant with the given name';
+  }
+
 .card{
-    max-width: 0.225vw;
+    max-width: 20%;
+    margin: 10px;        
 }
 
 .gridListMain {

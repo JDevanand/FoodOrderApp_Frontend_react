@@ -1,16 +1,39 @@
 .appBar{
     flex-grow: 1;
     color:white;
-    background-color: rgb(20, 20, 20);
-    height: 36px;
-    padding: 8px 32px 8px 16px;
+    background-color: rgb(20, 20, 20);    
+    padding: 8px 16px;
+    
+    display: flex;    
+    align-items: center;
+    justify-content: center;
+
 }
+
+.searchBar{
+    color:white;
+    flex-grow: 1; 
+    padding: 4px 4px 4px 0;    
+    padding-left: calc(1em + 16px);   
+    width: 100%;
+}
+
+.searchIcon {
+    padding: 0px 4px;
+    height: 100%;
+    position: absolute;    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color:white;
+}
+
 
 .logo { 
-    color: white;  
+    color: white;     
 }
 
-.searhIcon{
+#searchField{
     color: white;  
 }
 

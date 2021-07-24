@@ -17,8 +17,8 @@ class Controller extends Component {
     return (
       <Router>
         <div className="main-container">
-          <Route exact path='/' render={(props) => <Home {...props} baseUrl={this.baseUrl} showSearchBar="true" />} />          
-          <Route path='/restaurant/:restaurantID' render={(props) => <Details {...props} baseUrl={this.baseUrl} />} />
+          <Route exact path='/' render={(props) => <Home {...props} baseUrl={this.baseUrl}/>} />          
+          <Route path='/restaurant/:restaurantId' render={(props) => <Details {...props} baseUrl={this.baseUrl} />} />
           <Route path='/checkout' render={(props) => <Checkout {...props} baseUrl={this.baseUrl} />} />
           <Route path='/profile' render={(props) => <Profile {...props} baseUrl={this.baseUrl} />} />
         </div>

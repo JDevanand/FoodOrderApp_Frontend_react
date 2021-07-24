@@ -62,7 +62,15 @@ class Checkout extends Component {
             paymentModes: [],
             states: [],
 
-            checkoutDetails: {},
+            checkoutDetails: {
+                "address_id": "",
+                "payment_id": "",
+                "bill": 0,
+                "discount": 0,
+                "coupon_id": "",
+                "restaurant_id": "",
+                "item_quantities": []
+              },
 
             activeStep: 0,
 
@@ -78,22 +86,20 @@ class Checkout extends Component {
 
             saveAddressStatus: {}, //required to hold error messages from server            
 
-            openSnackBar: 0,
+            openSnackBar: false,
             snackBarMessage: ""
         }
     }
 
-    componentWillMount() {
-
-
-        let that = this;
+    componentWillMount() {        
 
         //Set state attributes from details page to checkout page
-        let currentState = this.state;
-        currentState = this.props.orderBuild;
-        this.setState({ state: currentState });
+        //let currentState = this.state;
+       // currentState = this.props.orderBuild;
+        //this.setState({ currentState });
 
         //Get customer addresses
+        let that = this;
         let dataAddress = null;
         let xhrAddress = new XMLHttpRequest();
 
@@ -161,17 +167,19 @@ class Checkout extends Component {
         xhrSaveAddress.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
 
-                if (xhrSaveAddress.getStatusLine().getStatusCode() !== 201) {
+                if (xhrSaveAddress.status  !== 201) {
                     that.setState({
-                        saveAddressStatus: JSON.parse(this.responseText)
+                        saveAddressStatus: JSON.parse(this.responseText),
+                        snackBarMessage: JSON.parse(this.responseText).message,
+                        openSnackBar: true,
                     });
                 }
 
-                if (xhrSaveAddress.getStatusLine().getStatusCode() === 201) {
+                if (xhrSaveAddress.status  === 201) {
                     that.setState({
                         saveAddressStatus: JSON.parse(this.responseText),
-                        openSnackBar: 1,
-                        snackBarMessage: "Address added successfully!",
+                        snackBarMessage: JSON.parse(this.responseText).status,
+                        openSnackBar: true,                        
                         addressTabValue: 0,
                     });
                 }
@@ -226,11 +234,11 @@ class Checkout extends Component {
     }
 
     inputStateChangeHandler = (event) => {
-        let saveAddressDetail = this.state.saveAddressRequest;
-        this.state.states.map((state) => {
-            if (state.state_uuid === event.target.value) saveAddressDetail.state_uuid = state.state_uuid;
+        let saveAddressDetail = this.state.saveAddressRequest;        
 
-        })
+        var stateMatch = this.state.states.filter(state => state.state_uuid === event.target.value);
+        saveAddressDetail.state_uuid = stateMatch[0].id;      
+
         this.setState({
             saveAddressRequest: saveAddressDetail
         })
@@ -249,8 +257,10 @@ class Checkout extends Component {
     }
 
 
-    addressSelectHandler = (event) => {
-        
+    addressSelectHandler = (addressUuid) => {
+        let checkoutstate = this.state.checkoutDetails;
+        checkoutstate.address = addressUuid;
+        this.setState({ checkoutDetails: checkoutstate });        
     }
 
     handleNextInStepper = () => {
@@ -283,16 +293,18 @@ class Checkout extends Component {
         xhrSaveOrder.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
 
-                if (xhrSaveOrder.getStatusLine().getStatusCode() === 201) {
+                if (xhrSaveOrder.status  === 201) {
+
+                    let orderSuccessMessage = "Order placed successfully! Your order ID is"+JSON.parse(this.responseText).id
                     that.setState({
-                        snackBarMessage: JSON.parse(this.responseText),
+                        snackBarMessage: orderSuccessMessage,
                         openSnackBar: true
                     });
                 }
 
-                if (xhrSaveOrder.getStatusLine().getStatusCode() !== 201) {
+                if (xhrSaveOrder.status  !== 201) {
                     that.setState({
-                        snackBarMessage: JSON.parse(this.responseText),
+                        snackBarMessage: JSON.parse(this.responseText).message,
                         openSnackBar: true
                     });
                 }
@@ -308,7 +320,7 @@ class Checkout extends Component {
 
     handleSnackbarClose = () => {
         this.setState({
-            openSnackBar: 0,
+            openSnackBar: false,
             snackBarMessage: ""
         })
     }
@@ -321,8 +333,7 @@ class Checkout extends Component {
         let saveAddress = this.state.saveAddressRequest;
 
         return (
-
-            < div >
+            <div>
                 <Header />
 
                 <div className="checkout">
@@ -344,7 +355,7 @@ class Checkout extends Component {
                                                     <TabContainer>
                                                         <GridList cols={3} className="addressGridList" spacing={2}>
                                                             {this.state.addresses.map(address => (
-                                                                <GridListTile key={"add" + address.id} className="addressDetail" onClick={this.addressSelectHandler}>
+                                                                <GridListTile key={"add" + address.id} className="addressDetail" onClick={()=>this.addressSelectHandler.bind(this,address.uuid)}>
                                                                     <Typography>
                                                                         {address.flat_building_name}
                                                                         {address.locality}

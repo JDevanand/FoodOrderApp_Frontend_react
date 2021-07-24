@@ -45,7 +45,7 @@ class Details extends Component {
                     "pincode": "",
                     "state": {
                         "id": "",
-                        "state_name": "strng"
+                        "state_name": ""
                     }
                 },
                 "categories": [
@@ -78,7 +78,7 @@ class Details extends Component {
             }
         });
 
-        xhrRestaurant.open("GET", this.props.baseUrl + "restaurant/" + this.props.match.params.restaurantID);
+        xhrRestaurant.open("GET", this.props.baseUrl + "restaurant/" + this.props.match.params.restaurantId);
         xhrRestaurant.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
         xhrRestaurant.setRequestHeader("Content-Type", "application/json");
         //xhrMovie.setRequestHeader("Cache-Control", "no-cache");
@@ -131,7 +131,7 @@ class Details extends Component {
                     state
                 })
             }
-            return 1;
+            return true;
         })
     }
 
@@ -168,8 +168,17 @@ class Details extends Component {
             return ;
         }
 
-
         //check if user is logged in else snackback msg to login first
+        if( sessionStorage.getItem("access-token") == null){
+            state.snackBarMessage = "Please login first!";
+            state.openSnackBar = 1;
+
+            this.setState({
+                state
+            })
+            return ;
+        }
+
 
         this.props.history.push({
             pathname: '/checkout/',
@@ -192,20 +201,13 @@ class Details extends Component {
                     </div>
 
                     <div className="restaurantDetails">
-                        <div>
+                        
                             <Typography variant="headline" component="h2">{restaurant.restaurant_name} </Typography>
-                        </div>
-                        <br />
-
-                        <div>
-                            <Typography variant="headline" component="h2">{restaurant.address.locality} </Typography>
-                        </div>
-                        <br /><br />
-
-                        <div>
+                            <br />
+                            <Typography variant="headline" component="h2">{restaurant.address["locality"]} </Typography>
+                            <br /><br />                   
                             <Typography variant="headline" component="h2">{restaurant.categories.category_name} </Typography>
-                        </div>
-
+                      
                         <div className="ratingAndAvgPrice">
 
                             <div className="rating">
