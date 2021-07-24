@@ -26,25 +26,6 @@ class Home extends Component {
     }
 
     getAllRestaurants = () => {        
-
-        /*
-        let that = this;
-        let dataRestaurant = null;
-        let xhrAllRestaurant = new XMLHttpRequest();
-        xhrAllRestaurant.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-                let fetchedData = [];
-                fetchedData.push(JSON.parse(this.responseText).restaurants);
-                that.setState({
-                    restaurants: fetchedData
-                });
-            }
-        });
-
-        xhrAllRestaurant.open("GET", this.props.baseUrl + "restaurant");
-        xhrAllRestaurant.setRequestHeader("Content-Type", "application/json");
-        xhrAllRestaurant.send(dataRestaurant);
-        */
         
         fetch(this.props.baseUrl + "restaurant", {
             "method": "GET",
@@ -77,24 +58,6 @@ class Home extends Component {
 
     searchByRestaurantName = (searchString) => {
         ///api/restaurant/name/{restaurantName}
-        /*
-        let that = this;
-        let dataRestaurant = null;
-        let xhrRestaurantByName = new XMLHttpRequest();
-        xhrRestaurantByName.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-                let fetchedData1 = [];
-                fetchedData1.push(JSON.parse(this.responseText).restaurants);
-                that.setState({
-                    restaurants: fetchedData1
-                });
-            }
-        });
-
-        xhrRestaurantByName.open("GET", this.props.baseUrl + "restaurant/name/" + searchString);
-        xhrRestaurantByName.setRequestHeader("Content-Type", "application/json");
-        xhrRestaurantByName.send(dataRestaurant);
-        */
 
         fetch(this.props.baseUrl + "restaurant/name/" + searchString, {
             "method": "GET",
@@ -125,7 +88,7 @@ class Home extends Component {
                 <div className="flex-container">
                     {(this.state.restaurants!==null) &&                    
                      this.state.restaurants.map(restaurant => (
-                        <div className="card" key={"home" + restaurant.id}>
+                        <div className="card" key={"home" + restaurant.id} onClick={()=>this.restaurantClickHandler(restaurant.id)}>
                             <Card>
                                 <CardActionArea>
                                     <CardMedia

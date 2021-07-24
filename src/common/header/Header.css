@@ -53,3 +53,9 @@
     margin-bottom: 20px;
 }
 
+@media screen and (max-width:600px) {
+    .appbar{
+        flex-direction: column;
+    }
+    
+}

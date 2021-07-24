@@ -1,18 +1,48 @@
-.restaurantDetails{
 
+
+.restaurant-details-pic{
     background-color: grey;
-    display: flex;    
-    flex-direction: row;
+    
+}
 
+.card-detailspage{
+    display: flex;    
+    background-color: grey;
+}
+
+.card-content{
+    flex :1 0 auto;
+}
+
+.restaurant-details{
+    display: flex;    
+    flex-direction: column;
+}
+
+.restaurant-image{
+    width : 150; 
+    height :  50%;
 }
 
 .ratingAndAvgPrice{
-    display: flex;
-    flex-direction: row;
+    display: flex;    
     justify-content: flex-start;
+}
+
+.rating,
+.avgPrice{
+    flex-grow: 1;
 }
 
 .menuAndCart{
     display: flex;
     justify-content: space-between;
+}
+
+@media screen and (max-width:600px) {
+
+    .card{
+       flex-direction: column;
+    }
+    
 }

@@ -6,7 +6,8 @@
     display:flex;
     flex-wrap: wrap;    
     justify-content:flex-start;
-    margin:2px;
+    margin:5px;
+    padding:5px;
 }
 
 .flex-container:empty:after {
@@ -25,6 +26,18 @@
 
 .restaurantRating{
     background-color: #ffd000ea;    
-    padding: 1px;
+    padding: 1%;
     max-width: max-content;
+}
+
+@media screen and (max-width:600px) {
+    .card{
+        max-width: 45%;
+        margin: 5px;        
+    }
+
+    .flex-container{
+        justify-content:center;
+    }
+    
 }

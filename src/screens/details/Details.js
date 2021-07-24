@@ -20,6 +20,7 @@ import Badge from '@material-ui/core/Badge';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
+import CardMedia from '@material-ui/core/CardMedia';
 import CardActions from '@material-ui/core/CardActions';
 import Avatar from '@material-ui/core/Avatar';
 
@@ -29,156 +30,152 @@ class Details extends Component {
 
     constructor() {
         super();
+        this.addNewItemHandler = this.addNewItemHandler.bind(this);
         this.state = {
             restaurant: {
-                "id": "",
-                "restaurant_name": "",
-                "photo_URL": "",
-                "customer_rating": 0,
-                "average_price": 0,
-                "number_customers_rated": 0,
-                "address": {
-                    "id": "",
-                    "flat_building_name": "",
-                    "locality": "",
-                    "city": "",
-                    "pincode": "",
-                    "state": {
-                        "id": "",
-                        "state_name": ""
-                    }
+                address: {
+                    id: "",
+                    flat_building_name: "",
+                    locality: "",
+                    city: "",
+                    pincode: "",
+                    state: {}
                 },
-                "categories": [
+                categories: [
                     {
-                        "id": "",
-                        "category_name": "",
-                        "item_list": []
+                        id: "",
+                        category_name: "",
+                        item_list: [
+                            {
+                                id: "",
+                                item_name: "",
+                                price: 0,
+                                type: ""
+                            }
+                        ]
                     }
                 ]
             },
-            orderItemDetails: [],
 
+            orderItemDetails: [
+                {
+                    item: {
+                        id: "",
+                        item_name: "",
+                        price: 0,
+                        type: ""
+                    },
+                    quantity: 0,
+                    price: 0
+                }
+            ],
             cartTotalPrice: 0,
             countofCartItems: 0,
 
-            openSnackBar:0,
-            snackBarMessage:""
+            openSnackBar: false,
+            snackBarMessage: ""
         }
     }
 
     componentWillMount() {
-        let that = this;
-        let dataRestaurant = null;
-        let xhrRestaurant = new XMLHttpRequest();
-        xhrRestaurant.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-                that.setState({
-                    restaurant: JSON.parse(this.responseText)
-                });
+        fetch(this.props.baseUrl + "restaurant/" + this.props.match.params.restaurantId, {
+            "method": "GET",
+            "headers": {
+                "Content-Type": "application/json"
             }
-        });
-
-        xhrRestaurant.open("GET", this.props.baseUrl + "restaurant/" + this.props.match.params.restaurantId);
-        xhrRestaurant.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
-        xhrRestaurant.setRequestHeader("Content-Type", "application/json");
-        //xhrMovie.setRequestHeader("Cache-Control", "no-cache");
-        xhrRestaurant.send(dataRestaurant);
+        })
+            .then(response => response.json())
+            .then(response1 => {
+                this.setState({
+                    restaurant: response1
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
 
     addNewItemHandler = (item) => {
         let state = this.state;
-        state.countofCartItems += 1;
 
+        let availableItem = state.orderItemDetails.map(cartItem => cartItem.item.id === item.id);
+        let index = state.orderItemDetails.indexOf(availableItem);
         //First check if present in cart & update if present
-        if (state.orderItemDetails.length !== 0) {
-            state.orderItemDetails.map((cartItem) => {
-                if (cartItem.item.id === item.id) {
-                    state.orderItemDetails.cartItem.quantity += 1;
-                    state.orderItemDetails.cartItem.price += item.price;
+        if (index > 0) {
+            state.orderItemDetails[index]["quantity"] += 1;
+            state.orderItemDetails[index]["price"] += item.price;
+            state.cartTotalPrice += item.price;
+            state.countofCartItems += 1;
+            this.setState({
+                state
+            })           
+        } else {
 
-                    state.cartTotalPrice += item.price;
-                    this.setState({
-                        state
-                    })
-                }
-                return true;
+            //if not in cart, add as new item to cart
+            let newItem = {};
+            newItem.item = item;//need to add the item with uuid and set quantity and total price
+            newItem.quantity = 1;
+            newItem.price = newItem.quantity * item.price;
+            state.orderItemDetails.push(newItem);
+            state.cartTotalPrice += newItem.price;
+            state.countofCartItems += 1;
+            this.setState({
+                state
             })
         }
+    }
 
-        //if not in cart, add as new item to cart
-        let newItem = {};
-        newItem.item = item;//need to add the item with uuid and set quantity and total price
-        newItem.quantity = 1;
-        newItem.price = newItem.quantity * item.price;
-        state.orderItemDetails.push(newItem);
-        state.cartTotalPrice += newItem.price;
+    addAdditionalItemHandler = (item) => {
+        let state = this.state;
+
+        let availableItem = state.orderItemDetails.map(cartItem => cartItem.item.id === item.id);
+        let index = state.orderItemDetails.indexOf(availableItem);
+        state.orderItemDetails[index]["quantity"] += 1;
+        state.orderItemDetails[index]["price"] += item.price;
+        state.cartTotalPrice += item.price;
+        state.countofCartItems += 1; 
         this.setState({
             state
         })
     }
 
-    addAdditionalItemHandler = (item) => {
-        let state = this.state;
-        state.countofCartItems += 1;
-
-        state.orderItemDetails.map((cartItem) => {
-            if (cartItem.item.id === item.id) {
-                state.orderItemDetails.cartItem.quantity += 1;
-                state.orderItemDetails.cartItem.price += item.price;
-
-                state.cartTotalPrice += item.price;
-                this.setState({
-                    state
-                })
-            }
-            return true;
-        })
-    }
-
     reduceItemHandler = (item) => {
         let state = this.state;
+        let availableItem = state.orderItemDetails.map(cartItem => cartItem.item.id === item.id);
+        let index = state.orderItemDetails.indexOf(availableItem);
+        state.orderItemDetails[index].quantity -= 1;
+        state.orderItemDetails[index].price -= item.price;
+        state.cartTotalPrice -= item.price;
         state.countofCartItems -= 1;
-
-        state.orderItemDetails.map((cartItem) => {
-            if (cartItem.item.id === item.id) {
-                state.orderItemDetails.cartItem.quantity -= 1;
-                state.orderItemDetails.cartItem.price -= item.price;
-
-                state.cartTotalPrice -= item.price;
-                this.setState({
-                    state
-                })
-            }
-            return true;
+        this.setState({
+            state
         })
-
     }
 
-    placeOrderClickHandler =()=>{
+    placeOrderClickHandler = () => {
         let state = this.state;
-        
+
         //if no cart item selected, snackbar msg to add atleast 1 item
-        if(state.countofCartItems===0){
+        if (state.countofCartItems === 0) {
             state.snackBarMessage = "Please add an item to your cart!";
-            state.openSnackBar = 1;
+            state.openSnackBar = true;
 
             this.setState({
                 state
-            })
-            return ;
+            });
+            return;
         }
 
         //check if user is logged in else snackback msg to login first
-        if( sessionStorage.getItem("access-token") == null){
+        if (sessionStorage.getItem("access-token") == null) {
             state.snackBarMessage = "Please login first!";
-            state.openSnackBar = 1;
+            state.openSnackBar = true;
 
             this.setState({
                 state
             })
-            return ;
+            return;
         }
-
 
         this.props.history.push({
             pathname: '/checkout/',
@@ -193,40 +190,47 @@ class Details extends Component {
 
         return (
             <div>
-                <Header />
-                <div className="restaurantDetails">
+                <Header baseUrl={this.props.baseUrl}/>
+                <div className="restaurant-details-pic">
+                    <Card className="card-detailspage">
+                        <CardMedia
+                            className="restaurant-image"
+                            component="img"
+                            alt={restaurant.restaurant_name}
+                            image={restaurant.photo_URL}
+                            title={restaurant.restaurant_name}
+                        />
 
-                    <div className="restaurant-image">
-                        <img src={restaurant.photo_URL} alt={restaurant.restaurant_name}></img>
-                    </div>
+                        <div className="restaurant-details">
+                            <CardContent className="card-content">
+                                <Typography component="h5" variant="h5">
+                                    {restaurant.restaurant_name}
+                                </Typography>
+                                <Typography variant="subtitle1" color="textSecondary">
+                                    {restaurant.address["locality"]}
+                                </Typography>
+                                <Typography variant="subtitle1" color="textSecondary">
+                                    {restaurant.categories.category_name}
+                                </Typography>
 
-                    <div className="restaurantDetails">
-                        
-                            <Typography variant="headline" component="h2">{restaurant.restaurant_name} </Typography>
-                            <br />
-                            <Typography variant="headline" component="h2">{restaurant.address["locality"]} </Typography>
-                            <br /><br />                   
-                            <Typography variant="headline" component="h2">{restaurant.categories.category_name} </Typography>
-                      
-                        <div className="ratingAndAvgPrice">
+                                <div className="ratingAndAvgPrice">
+                                    <div className="rating">
+                                        <div>
+                                            <Icon className="fa fa-star" aria-hidden="true" />{restaurant.customer_rating}
+                                        </div>
+                                        <Typography variant="headline" component="h2">AVERAGE RATING BY {restaurant.number_customers_rated} CUSTOMERS </Typography>
+                                    </div>
 
-                            <div className="rating">
-                                <div>
-                                    <Icon className="fa fa-star" aria-hidden="true" />{restaurant.customer_rating}
+                                    <div className="avgPrice">
+                                        <div>
+                                            <Icon className="fa fa-inr" aria-hidden="true" />{restaurant.average_price}
+                                        </div>
+                                        <Typography variant="headline" component="h2">AVERAGE COST FOR TWO PEOPLE</Typography>
+                                    </div>
                                 </div>
-                                <Typography variant="headline" component="h2">AVERAGE RATING BY {restaurant.number_customers_rated} CUSTOMERS </Typography>
-                            </div>
-
-                            <div className="avgPrice">
-                                <div>
-                                    <Icon className="fa fa-inr" aria-hidden="true" />{restaurant.average_price}
-                                </div>
-                                <Typography variant="headline" component="h2">AVERAGE COST FOR TWO PEOPLE</Typography>
-                            </div>
+                            </CardContent>
                         </div>
-
-                    </div>
-
+                    </Card>
                 </div>
 
                 <div className="menuAndCart">
@@ -249,8 +253,8 @@ class Details extends Component {
                                                 <ListItem>
                                                     <ListItemIcon>
                                                         {item.type === "VEG"
-                                                            ? <Icon className="fa fa-circle " style={{ color: 'green[500]' }} />
-                                                            : <Icon className="fa fa-circle " style={{ color: 'red[500]' }} />
+                                                            ? <Icon className="fa fa-circle " style={{ color: 'green' }} />
+                                                            : <Icon className="fa fa-circle " style={{ color: 'red' }} />
                                                         }
                                                     </ListItemIcon>
                                                     <ListItemText
@@ -259,7 +263,7 @@ class Details extends Component {
                                                     <ListItemText
                                                         primary={item.price}
                                                     />
-                                                    <IconButton edge="end" aria-label="delete" onClick={this.addNewItemHandler(item)}>
+                                                    <IconButton edge="end" aria-label="delete" onClick={() => this.addNewItemHandler(item)}>
                                                         <AddIcon />
                                                     </IconButton>
                                                 </ListItem>,
@@ -273,7 +277,6 @@ class Details extends Component {
                         {/* My cart components */}
                         <Grid item xs={12} md={5}>
                             <Card className="cart">
-
                                 <CardHeader
                                     avatar={
                                         <Avatar aria-label="recipe" className="cartAvatar">
@@ -287,37 +290,38 @@ class Details extends Component {
 
                                 <CardContent>
                                     <List>
-                                        {this.state.orderItemDetails.map(orderitem => (
-                                            <div key={"cart" + orderitem.item.id}>
-                                                <ListItem>
-                                                    <ListItemIcon>
-                                                        {orderitem.item.type === "VEG"
-                                                            ? <Icon className="fa fa-stop-circle-o " style={{ color: 'green[500]' }} />
-                                                            : <Icon className="fa fa-stop-circle-o " style={{ color: 'red[500]' }} />
-                                                        }
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={orderitem.item.item_name}
-                                                    />
-                                                    <ListItemIcon>
-                                                    <Icon className="fa fa-minus" onClick={this.reduceItemHandler(orderitem)}/>
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={orderitem.quantity}
-                                                    />
-                                                    <ListItemIcon>
-                                                    <Icon className="fa fa-plus" onClick={this.addAdditionalItemHandler(orderitem)}/>
-                                                    </ListItemIcon>
+                                        {(this.state.orderItemDetails !== null) &&
+                                            this.state.orderItemDetails.map(orderitem => (
+                                                <div key={"cart" + orderitem.item.id}>
+                                                    <ListItem>
+                                                        <ListItemIcon>
+                                                            {orderitem.item.type === "VEG"
+                                                                ? <Icon className="fa fa-stop-circle-o " style={{ color: 'green' }} />
+                                                                : <Icon className="fa fa-stop-circle-o " style={{ color: 'red' }} />
+                                                            }
+                                                        </ListItemIcon>
+                                                        <ListItemText
+                                                            primary={orderitem.item.item_name}
+                                                        />
+                                                        <ListItemIcon>
+                                                            <Icon className="fa fa-minus" onClick={() => this.reduceItemHandler(orderitem)} />
+                                                        </ListItemIcon>
+                                                        <ListItemText
+                                                            primary={orderitem.quantity}
+                                                        />
+                                                        <ListItemIcon>
+                                                            <Icon className="fa fa-plus" onClick={() => this.addAdditionalItemHandler(orderitem)} />
+                                                        </ListItemIcon>
 
-                                                    <ListItemIcon>
-                                                    <Icon className="fa fa-inr"/>
-                                                    </ListItemIcon>
-                                                    <ListItemText
-                                                        primary={orderitem.price}
-                                                    />                                                    
-                                                </ListItem>,
-                                            </div>
-                                        ))}
+                                                        <ListItemIcon>
+                                                            <Icon className="fa fa-inr" />
+                                                        </ListItemIcon>
+                                                        <ListItemText
+                                                            primary={orderitem.price}
+                                                        />
+                                                    </ListItem>,
+                                                </div>
+                                            ))}
                                     </List>
 
                                     <Typography>
@@ -333,9 +337,7 @@ class Details extends Component {
                             </Card>
                         </Grid>
                     </Grid>
-
                 </div >
-
             </div >
         )
     }

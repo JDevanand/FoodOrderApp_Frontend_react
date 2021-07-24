@@ -338,7 +338,7 @@ class Checkout extends Component {
 
                 <div className="checkout">
                     <div className="orderStepper">
-                        <Stepper activeStep={this.activeStep} orientation="vertical">
+                        <Stepper activeStep={this.state.activeStep} orientation="vertical">
                             {this.steps.map((label, index) => (
                                 <Step key={label}>
                                     <StepLabel>{label}</StepLabel>
