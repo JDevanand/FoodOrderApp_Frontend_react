@@ -87,20 +87,21 @@ class Details extends Component {
 
     addNewItemHandler = (item) => {
         let state = this.state;
-
-        let availableItem = state.orderItemDetails.map(cartItem => cartItem.item.id === item.id);
-        let index = state.orderItemDetails.indexOf(availableItem);
+   
+        let availableItem = state.orderItemDetails.filter(cartItem => cartItem.item.id === item.id);
+        let index = state.orderItemDetails.indexOf(availableItem[0]);
+     
         //First check if present in cart & update if present
-        if (index > 0) {
+        if (index >= 0) {
             state.orderItemDetails[index]["quantity"] += 1;
             state.orderItemDetails[index]["price"] += item.price;
             state.cartTotalPrice += item.price;
             state.countofCartItems += 1;
             this.setState({
-                state
+                state : state
             })           
+          
         } else {
-
             //if not in cart, add as new item to cart
             let newItem = {};
             newItem.item = item;//need to add the item with uuid and set quantity and total price
@@ -110,33 +111,38 @@ class Details extends Component {
             state.cartTotalPrice += newItem.price;
             state.countofCartItems += 1;
             this.setState({
-                state
-            })
+                state :state
+            })          
         }
     }
 
     addAdditionalItemHandler = (item) => {
-        let state = this.state;
-
-        let availableItem = state.orderItemDetails.map(cartItem => cartItem.item.id === item.id);
-        let index = state.orderItemDetails.indexOf(availableItem);
-        state.orderItemDetails[index]["quantity"] += 1;
-        state.orderItemDetails[index]["price"] += item.price;
-        state.cartTotalPrice += item.price;
-        state.countofCartItems += 1; 
+        let state = this.state;  
+        let index = state.orderItemDetails.indexOf(item);
+    
+        state.orderItemDetails[index]["price"] += item.price/item.quantity;        
+        state.orderItemDetails[index]["quantity"] += 1;        
+        state.cartTotalPrice += item.price/item.quantity;        
+        state.countofCartItems += 1;
         this.setState({
-            state
-        })
+            state 
+        })  
     }
 
     reduceItemHandler = (item) => {
+        console.log(item);
         let state = this.state;
-        let availableItem = state.orderItemDetails.map(cartItem => cartItem.item.id === item.id);
-        let index = state.orderItemDetails.indexOf(availableItem);
-        state.orderItemDetails[index].quantity -= 1;
-        state.orderItemDetails[index].price -= item.price;
-        state.cartTotalPrice -= item.price;
+        let index = state.orderItemDetails.indexOf(item);
+
+        state.cartTotalPrice -= item.price/item.quantity;
+        state.orderItemDetails[index].price -= item.price/item.quantity;
+        state.orderItemDetails[index].quantity -= 1;       
         state.countofCartItems -= 1;
+
+        if(state.orderItemDetails[index].quantity===0){
+            state.orderItemDetails.splice(index,1);                       
+        }
+
         this.setState({
             state
         })
@@ -151,7 +157,7 @@ class Details extends Component {
             state.openSnackBar = true;
 
             this.setState({
-                state
+                state :state
             });
             return;
         }
@@ -162,7 +168,7 @@ class Details extends Component {
             state.openSnackBar = true;
 
             this.setState({
-                state
+                state :state
             })
             return;
         }
@@ -244,9 +250,9 @@ class Details extends Component {
                                             <div key={item.id}>
                                                 <ListItem>
                                                     <ListItemIcon>
-                                                        {item.type === "VEG"
-                                                            ? <Icon className="fa fa-circle " style={{ color: 'green' }} />
-                                                            : <Icon className="fa fa-circle " style={{ color: 'red' }} />
+                                                        {item.item_type === "NON_VEG"
+                                                            ? <Icon className="fa fa-circle " style={{ color: 'red' }} />
+                                                            : <Icon className="fa fa-circle " style={{ color: 'green'}} />
                                                         }
                                                     </ListItemIcon>
                                                     <ListItemText
@@ -287,7 +293,7 @@ class Details extends Component {
                                                 <div key={"cart" + orderitem.item.id}>
                                                     <ListItem>
                                                         <ListItemIcon>
-                                                            {orderitem.item.type === "VEG"
+                                                            {orderitem.item.item_type === "VEG"
                                                                 ? <Icon className="fa fa-stop-circle-o " style={{ color: 'green' }} />
                                                                 : <Icon className="fa fa-stop-circle-o " style={{ color: 'red' }} />
                                                             }

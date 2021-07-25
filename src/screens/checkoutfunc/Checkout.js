@@ -209,7 +209,7 @@ export default function Checkout(props) {
                                         <div key={"placeOrder" + orderitem.item.id}>
                                             <ListItem>
                                                 <ListItemIcon>
-                                                    {orderitem.item.type === "VEG"
+                                                    {orderitem.item.item_type === "VEG"
                                                         ? <Icon className="fa fa-stop-circle-o " style={{ color: 'green[500]' }} />
                                                         : <Icon className="fa fa-stop-circle-o " style={{ color: 'red[500]' }} />
                                                     }
@@ -251,11 +251,15 @@ class PaymentMode extends Component {
 
         super();
         this.state = {
-            paymentModes: []
+            paymentModes: [],
+            paymentSelectValue:""
         }
     }
 
     paymentModeClick = (event) => {
+        this.setState({
+            paymentSelectValue:event.target.value
+        })
         this.props.paymentModeSelection(event.target.value);
     }
 
@@ -284,7 +288,7 @@ class PaymentMode extends Component {
         return (
             <FormControl component="fieldset">
                 <FormLabel component="legend">Select Mode of Payment</FormLabel>
-                <RadioGroup aria-label="paymentMode" name="paymentMode" value="" onChange={() => this.paymentModeClick.bind(this)}>
+                <RadioGroup aria-label="paymentMode" name="paymentMode" value={this.paymentSelectValue} onChange={() => this.paymentModeClick.bind(this)}>
                     {this.state.paymentModes.map(modes => (
                         <FormControlLabel key={modes.uuid} value={modes.uuid} control={<Radio />} label={modes.payment_name} checked={false} />
                     ))}
@@ -312,9 +316,7 @@ class DeliveryAddress extends Component {
         super();
         this.state = {
 
-            addresses: [{
-                state:{}
-            }],
+            addresses: [],
             states: [],
             addressTabValue: 0,
 
@@ -346,7 +348,7 @@ class DeliveryAddress extends Component {
             }
         })
             .then(response => response.json())
-            .then(response1 => {
+            .then(response1 => {                
                 this.setState({
                     states: response1.states
                 })
@@ -450,8 +452,7 @@ class DeliveryAddress extends Component {
     }
 
     getAddressList = () => {
-        //Get customer addresses after new address is added
-
+    
         fetch(this.props.baseUrl + "address/customer", {
             "method": "GET",
             "headers": {
@@ -460,12 +461,10 @@ class DeliveryAddress extends Component {
             }
         })
             .then(response => response.json())
-            .then(response1 => {
+            .then(response => {
                 this.setState({
-                    addresses: response1.addresses
+                    addresses: response.addresses
                 })
-
-                console.log(this.state.addresses);
             })
             .catch(err => {
                 console.log(err);
@@ -491,18 +490,15 @@ class DeliveryAddress extends Component {
                                 this.state.addresses.map(address => (
                                     <ImageListItem key={"add" + address.id} className="addressDetail" onClick={() => this.addressSelectHandler.bind(this, address.id)}>
                                         <Typography>
-                                            {address.flat_building_name}
-                                            {address.locality}
-                                            {address.city}
-                                            {address.state}
-                                            {address.pincode}
+                                            <p>{address.flat_building_name}</p>
+                                            <p>{address.locality}</p>
+                                            <p>{address.city}</p>
+                                            <p>{address.state.state_name}</p>
+                                            <p>{address.pincode}</p>
                                         </Typography>
-                                        <ImageListItemBar
-                                            actionIcon={
-                                                <IconButton className="addressSelectIcon">
+                                            <IconButton className="addressSelectIcon">
                                                     <CheckCircleIcon />
-                                                </IconButton>}
-                                        />
+                                            </IconButton>
                                     </ImageListItem>))}
                         </ImageList>
                         </div>
