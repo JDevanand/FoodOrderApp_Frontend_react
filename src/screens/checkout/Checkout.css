@@ -1,6 +1,10 @@
 .checkout{
     display: flex;
 }
+.orderStepper{
+
+    width:70%
+}
 
 .red{
     color:red;

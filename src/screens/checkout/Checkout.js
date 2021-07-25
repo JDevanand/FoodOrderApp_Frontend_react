@@ -54,9 +54,8 @@ TabContainer.propTypes = {
 
 class Checkout extends Component {
 
-
     constructor() {
-        super();
+        super();        
         this.state = {
             addresses: [],
             paymentModes: [],
@@ -70,32 +69,20 @@ class Checkout extends Component {
                 "coupon_id": "",
                 "restaurant_id": "",
                 "item_quantities": []
-              },
-
-            activeStep: 0,
-
-            saveAddressRequest: {
-                "flat_building_name": "",
-                "locality": "",
-                "city": "",
-                "pincode": "",
-                "state_uuid": ""
             },
 
-            addressTabValue: 0,
-
-            saveAddressStatus: {}, //required to hold error messages from server            
+            activeStep: 0,
 
             openSnackBar: false,
             snackBarMessage: ""
         }
     }
 
-    componentWillMount() {        
+    componentWillMount() {
 
         //Set state attributes from details page to checkout page
         //let currentState = this.state;
-       // currentState = this.props.orderBuild;
+        // currentState = this.props.orderBuild;
         //this.setState({ currentState });
 
         //Get customer addresses
@@ -158,111 +145,6 @@ class Checkout extends Component {
 
     }
 
-    saveAddressClickHandler = () => {
-
-        let dataAddress = JSON.stringify(this.state.saveAddressRequest);
-
-        let xhrSaveAddress = new XMLHttpRequest();
-        let that = this;
-        xhrSaveAddress.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-
-                if (xhrSaveAddress.status  !== 201) {
-                    that.setState({
-                        saveAddressStatus: JSON.parse(this.responseText),
-                        snackBarMessage: JSON.parse(this.responseText).message,
-                        openSnackBar: true,
-                    });
-                }
-
-                if (xhrSaveAddress.status  === 201) {
-                    that.setState({
-                        saveAddressStatus: JSON.parse(this.responseText),
-                        snackBarMessage: JSON.parse(this.responseText).status,
-                        openSnackBar: true,                        
-                        addressTabValue: 0,
-                    });
-                }
-            }
-        });
-
-        xhrSaveAddress.open("POST", this.props.baseUrl + "/address");
-        xhrSaveAddress.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
-        xhrSaveAddress.setRequestHeader("Content-Type", "application/json");
-        xhrSaveAddress.send(dataAddress);
-    }
-
-    paymentModeClick = (event) => {
-        let checkout = this.state.checkoutDetails;
-        //method to add new attributes to object
-        checkout["payment_id"] = event.target.value;
-        this.setState({
-            checkoutDetails: checkout
-        });
-    }
-
-    getStateName = (stateid) => {
-        this.state.states.map(state => {
-            if (state.state_uuid === stateid) return state.state_name;
-            return "";
-        });
-    }
-
-
-    inputflatBuildingNoChangeHandler = (event) => {
-        let saveAddressDetail = this.state.saveAddressRequest;
-        saveAddressDetail.flat_building_name = event.target.value;
-        this.setState({
-            saveAddressRequest: saveAddressDetail
-        });
-    }
-
-    inputlocalityChangeHandler = (event) => {
-        let saveAddressDetail = this.state.saveAddressRequest;
-        saveAddressDetail.locality = event.target.value;
-        this.setState({
-            saveAddressRequest: saveAddressDetail
-        });
-    }
-
-    inputcityChangeHandler = (event) => {
-        let saveAddressDetail = this.state.saveAddressRequest;
-        saveAddressDetail.city = event.target.value;
-        this.setState({
-            saveAddressRequest: saveAddressDetail
-        });
-    }
-
-    inputStateChangeHandler = (event) => {
-        let saveAddressDetail = this.state.saveAddressRequest;        
-
-        var stateMatch = this.state.states.filter(state => state.state_uuid === event.target.value);
-        saveAddressDetail.state_uuid = stateMatch[0].id;      
-
-        this.setState({
-            saveAddressRequest: saveAddressDetail
-        })
-    }
-
-    inputPincodeChangeHandler = (event) => {
-        let saveAddressDetail = this.state.saveAddressRequest;
-        saveAddressDetail.pincode = event.target.value;
-        this.setState({
-            saveAddressRequest: saveAddressDetail
-        });
-    }
-
-    tabChangeHandler = (event, value) => {
-        this.setState({ addressTabValue: value });
-    }
-
-
-    addressSelectHandler = (addressUuid) => {
-        let checkoutstate = this.state.checkoutDetails;
-        checkoutstate.address = addressUuid;
-        this.setState({ checkoutDetails: checkoutstate });        
-    }
-
     handleNextInStepper = () => {
         let changeStep = this.State.activeStep;
         this.setState({
@@ -293,16 +175,16 @@ class Checkout extends Component {
         xhrSaveOrder.addEventListener("readystatechange", function () {
             if (this.readyState === 4) {
 
-                if (xhrSaveOrder.status  === 201) {
+                if (xhrSaveOrder.status === 201) {
 
-                    let orderSuccessMessage = "Order placed successfully! Your order ID is"+JSON.parse(this.responseText).id
+                    let orderSuccessMessage = "Order placed successfully! Your order ID is" + JSON.parse(this.responseText).id
                     that.setState({
                         snackBarMessage: orderSuccessMessage,
                         openSnackBar: true
                     });
                 }
 
-                if (xhrSaveOrder.status  !== 201) {
+                if (xhrSaveOrder.status !== 201) {
                     that.setState({
                         snackBarMessage: JSON.parse(this.responseText).message,
                         openSnackBar: true
@@ -329,131 +211,54 @@ class Checkout extends Component {
         return ['Delivery', 'Payment'];
     }
 
+    getStepContent = (step) => {
+        switch (step) {
+            case 0:
+                return <DeliveryAddress addresses={this.state.addresses} states={this.state.states} addressSelection={this.orderAddressSelect} />
+            case 1:
+                return <PaymentMode paymentModes={this.state.paymentModes} paymentModeSelection={this.orderPaymentModeSelect} />
+            default:
+                return 'Unknown step';
+        }
+    }
+
+    orderAddressSelect = (addressid) => {
+        let addressCheckOut = this.state.checkoutDetails;
+        addressCheckOut.address_id = addressid;
+
+        this.setState({
+            checkoutDetails: addressCheckOut
+        })
+
+    }
+
+    orderPaymentModeSelect = (paymentModeId) => {
+        let addressCheckOut = this.state.checkoutDetails;
+        addressCheckOut.payment_id = paymentModeId;
+
+        this.setState({
+            checkoutDetails: addressCheckOut
+        })
+
+    }
+
     render() {
-        let saveAddress = this.state.saveAddressRequest;
+
+        var steps = [];
+        steps = this.getSteps();
 
         return (
             <div>
-                <Header />
-
+                <Header baseUrl={this.props.baseUrl} />
                 <div className="checkout">
                     <div className="orderStepper">
                         <Stepper activeStep={this.state.activeStep} orientation="vertical">
-                            {this.steps.map((label, index) => (
+                            {(steps.length>0) &&
+                            steps.map((label, index) => (
                                 <Step key={label}>
                                     <StepLabel>{label}</StepLabel>
                                     <StepContent>
-                                        {(index === 0) &&
-
-                                            <div>
-                                                <Tabs className="tabs" value={this.state.addressTabValue} onChange={this.tabChangeHandler}>
-                                                    <Tab label="Existing Address" />
-                                                    <Tab label="New Address" />
-                                                </Tabs>
-
-                                                {(this.state.addressTabValue === 0) &&
-                                                    <TabContainer>
-                                                        <GridList cols={3} className="addressGridList" spacing={2}>
-                                                            {this.state.addresses.map(address => (
-                                                                <GridListTile key={"add" + address.id} className="addressDetail" onClick={()=>this.addressSelectHandler.bind(this,address.uuid)}>
-                                                                    <Typography>
-                                                                        {address.flat_building_name}
-                                                                        {address.locality}
-                                                                        {address.city}
-                                                                        {address.state}
-                                                                        {address.pincode}
-                                                                    </Typography>
-                                                                    <IconButton>
-                                                                        <CheckCircleIcon />
-                                                                    </IconButton>
-                                                                </GridListTile>
-                                                            ))}
-                                                        </GridList>
-                                                    </TabContainer>
-                                                }
-
-                                                {this.state.addressTabValue === 1 &&
-                                                    <TabContainer>
-                                                        <FormControl required>
-                                                            <InputLabel htmlFor="flatBuildingNo">Flat / Building No.</InputLabel>
-                                                            <Input id="flatBuildingNo" type="text" username={saveAddress.flat_building_name} onChange={this.inputflatBuildingNoChangeHandler} />
-                                                            <FormHelperText className={saveAddress.flat_building_name === "" ? "dispBlock" : "dispNone"}>
-                                                                <span className="red">required</span>
-                                                            </FormHelperText>
-                                                        </FormControl>
-                                                        <br /><br />
-
-                                                        <FormControl required>
-                                                            <InputLabel htmlFor="locality">Locality</InputLabel>
-                                                            <Input id="locality" type="text" username={saveAddress.locality} onChange={this.inputlocalityChangeHandler} />
-                                                            <FormHelperText className={saveAddress.locality === "" ? "dispBlock" : "dispNone"}>
-                                                                <span className="red">required</span>
-                                                            </FormHelperText>
-                                                        </FormControl>
-                                                        <br /><br />
-
-                                                        <FormControl required>
-                                                            <InputLabel htmlFor="city">City</InputLabel>
-                                                            <Input id="city" type="text" username={saveAddress.city} onChange={this.inputcityChangeHandler} />
-                                                            <FormHelperText className={saveAddress.city === "" ? "dispBlock" : "dispNone"}>
-                                                                <span className="red">required</span>
-                                                            </FormHelperText>
-                                                        </FormControl>
-                                                        <br /><br />
-
-                                                        <FormControl required>
-                                                            <InputLabel id="state">State</InputLabel>
-                                                            <Select
-                                                                labelId="demo-simple-select-helper-label"
-                                                                id="demo-simple-select-helper"
-                                                                value={this.getStateName(saveAddress.state_uuid)}
-                                                                onChange={this.inputStateChangeHandler}
-                                                            >
-                                                                {this.state.states.map(state => (
-                                                                    <MenuItem key={state.state_name} value={state.id}>{state.state_name}</MenuItem>
-                                                                ))}
-                                                            </Select>
-                                                            <FormHelperText className={saveAddress.state_uuid === "" ? "dispBlock" : "dispNone"}>
-                                                                <span className="red">required</span>
-                                                            </FormHelperText>
-                                                        </FormControl>
-                                                        <br /><br />
-
-                                                        <FormControl required>
-                                                            <InputLabel htmlFor="pincode">Pincode</InputLabel>
-                                                            <Input id="pincode" type="text" username={saveAddress.pincode} onChange={this.inputPincodeChangeHandler} />
-                                                            <FormHelperText className={saveAddress.pincode === "" ? "dispBlock" : "dispNone"}>
-                                                                <span className="red">required</span>
-                                                            </FormHelperText>
-
-                                                            {/*Pincode error to be fetched and updated properly*/}
-                                                            {this.state.saveAddressStatus !== null &&
-                                                                <FormHelperText >
-                                                                    <span className="red">Pincode must contain only numbers and must be 6 digits long</span>
-                                                                </FormHelperText>
-                                                            }
-                                                        </FormControl>
-                                                        <br /><br />
-
-                                                        <Button variant="contained" color="secondary" onClick={this.saveAddressClickHandler}>SAVE ADDRESS</Button>
-
-                                                    </TabContainer>
-                                                }
-                                            </div>
-                                        }
-
-                                        {(index === 1) &&
-                                            /* Radio button for payment modes */
-                                            <FormControl component="fieldset">
-                                                <FormLabel component="legend">Select Mode of Payment</FormLabel>
-                                                <RadioGroup aria-label="paymentMode" name="gender1" onChange={this.paymentModeClick}>
-                                                    {this.state.paymentModes.map(modes => (
-                                                        <FormControlLabel key={modes.uuid} value={modes.uuid} control={<Radio />} label={modes.payment_name} />
-                                                    ))}
-                                                </RadioGroup>
-                                            </FormControl>
-                                        }
-
+                                        {this.getStepContent(index)}
                                         <div className="actionsContainer">
                                             <div>
                                                 <Button
@@ -469,7 +274,7 @@ class Checkout extends Component {
                                                     onClick={this.handleNextInStepper}
                                                     className="button"
                                                 >
-                                                    {this.state.activeStep === this.steps.length - 1 ? 'Finish' : 'Next'}
+                                                    {this.state.activeStep === steps.length - 1 ? 'Finish' : 'Next'}
                                                 </Button>
                                             </div>
                                         </div>
@@ -568,5 +373,271 @@ class Checkout extends Component {
     }
 }
 
+class DeliveryAddress extends Component {
+
+    constructor() {
+        super();
+        this.state = {
+            addressTabValue: 0,
+
+            saveAddressRequest: {
+                "flat_building_name": "",
+                "locality": "",
+                "city": "",
+                "pincode": "",
+                "state_uuid": ""
+            },
+
+            saveAddressStatus: {}, //required to hold error messages from server            
+
+            openSnackBar: false,
+            snackBarMessage: ""
+        }
+    }
+
+    tabChangeHandler = (event, value) => {
+        this.setState({ addressTabValue: value });
+    }
+
+    getStateName = (stateid) => {
+        this.state.states.map(state => {
+            if (state.state_uuid === stateid) return state.state_name;
+            return "";
+        });
+    }
+
+    addressSelectHandler = (addressUuid) => {
+        let checkoutstate = this.state.checkoutDetails;
+        checkoutstate.address = addressUuid;
+        this.setState({ checkoutDetails: checkoutstate });
+    }
+
+    inputflatBuildingNoChangeHandler = (event) => {
+        let saveAddressDetail = this.state.saveAddressRequest;
+        saveAddressDetail.flat_building_name = event.target.value;
+        this.setState({
+            saveAddressRequest: saveAddressDetail
+        });
+    }
+
+    inputlocalityChangeHandler = (event) => {
+        let saveAddressDetail = this.state.saveAddressRequest;
+        saveAddressDetail.locality = event.target.value;
+        this.setState({
+            saveAddressRequest: saveAddressDetail
+        });
+    }
+
+    inputcityChangeHandler = (event) => {
+        let saveAddressDetail = this.state.saveAddressRequest;
+        saveAddressDetail.city = event.target.value;
+        this.setState({
+            saveAddressRequest: saveAddressDetail
+        });
+    }
+
+    inputStateChangeHandler = (event) => {
+        let saveAddressDetail = this.state.saveAddressRequest;
+
+        var stateMatch = this.state.states.filter(state => state.state_uuid === event.target.value);
+        saveAddressDetail.state_uuid = stateMatch[0].id;
+
+        this.setState({
+            saveAddressRequest: saveAddressDetail
+        })
+    }
+
+    inputPincodeChangeHandler = (event) => {
+        let saveAddressDetail = this.state.saveAddressRequest;
+        saveAddressDetail.pincode = event.target.value;
+        this.setState({
+            saveAddressRequest: saveAddressDetail
+        });
+    }
+
+    saveAddressClickHandler = () => {
+
+        let dataAddress = JSON.stringify(this.state.saveAddressRequest);
+
+        let xhrSaveAddress = new XMLHttpRequest();
+        let that = this;
+        xhrSaveAddress.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+
+                if (xhrSaveAddress.status !== 201) {
+                    that.setState({
+                        saveAddressStatus: JSON.parse(this.responseText),
+                        snackBarMessage: JSON.parse(this.responseText).message,
+                        openSnackBar: true,
+                    });
+                }
+
+                if (xhrSaveAddress.status === 201) {
+                    that.setState({
+                        saveAddressStatus: JSON.parse(this.responseText),
+                        snackBarMessage: JSON.parse(this.responseText).status,
+                        openSnackBar: true,
+                        addressTabValue: 0,
+                    });
+                }
+            }
+        });
+
+        xhrSaveAddress.open("POST", this.props.baseUrl + "/address");
+        xhrSaveAddress.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
+        xhrSaveAddress.setRequestHeader("Content-Type", "application/json");
+        xhrSaveAddress.send(dataAddress);
+    }
+
+    render() {
+
+        let saveAddress = this.state.saveAddressRequest;
+
+        return (
+            <div>
+
+                <Tabs className="tabs" value={this.state.addressTabValue} onChange={this.tabChangeHandler}>
+                    <Tab label="Existing Address" />
+                    <Tab label="New Address" />
+                </Tabs>
+
+                {(this.state.addressTabValue === 0) &&
+                    <TabContainer>
+                        <GridList cols={3} className="addressGridList" spacing={2}>
+                            {this.props.addresses.map(address => (
+                                <GridListTile key={"add" + address.id} className="addressDetail" onClick={() => this.addressSelectHandler.bind(this, address.uuid)}>
+                                    <Typography>
+                                        {address.flat_building_name}
+                                        {address.locality}
+                                        {address.city}
+                                        {address.state}
+                                        {address.pincode}
+                                    </Typography>
+                                    <IconButton>
+                                        <CheckCircleIcon />
+                                    </IconButton>
+                                </GridListTile>
+                            ))}
+                        </GridList>
+                    </TabContainer>
+                }
+
+                {this.state.addressTabValue === 1 &&
+                    <TabContainer>
+                        <FormControl required>
+                            <InputLabel htmlFor="flatBuildingNo">Flat / Building No.</InputLabel>
+                            <Input id="flatBuildingNo" type="text" username={saveAddress.flat_building_name} onChange={this.inputflatBuildingNoChangeHandler} />
+                            <FormHelperText className={saveAddress.flat_building_name === "" ? "dispBlock" : "dispNone"}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+
+                        <FormControl required>
+                            <InputLabel htmlFor="locality">Locality</InputLabel>
+                            <Input id="locality" type="text" username={saveAddress.locality} onChange={this.inputlocalityChangeHandler} />
+                            <FormHelperText className={saveAddress.locality === "" ? "dispBlock" : "dispNone"}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+
+                        <FormControl required>
+                            <InputLabel htmlFor="city">City</InputLabel>
+                            <Input id="city" type="text" username={saveAddress.city} onChange={this.inputcityChangeHandler} />
+                            <FormHelperText className={saveAddress.city === "" ? "dispBlock" : "dispNone"}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+
+                        <FormControl required>
+                            <InputLabel id="state">State</InputLabel>
+                            <Select
+                                labelId="demo-simple-select-helper-label"
+                                id="demo-simple-select-helper"
+                                value={this.getStateName(saveAddress.state_uuid)}
+                                onChange={this.inputStateChangeHandler}
+                            >
+                                {this.props.states.map(state => (
+                                    <MenuItem key={state.state_name} value={state.id}>{state.state_name}</MenuItem>
+                                ))}
+                            </Select>
+                            <FormHelperText className={saveAddress.state_uuid === "" ? "dispBlock" : "dispNone"}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+                        </FormControl>
+                        <br /><br />
+
+                        <FormControl required>
+                            <InputLabel htmlFor="pincode">Pincode</InputLabel>
+                            <Input id="pincode" type="text" username={saveAddress.pincode} onChange={this.inputPincodeChangeHandler} />
+                            <FormHelperText className={saveAddress.pincode === "" ? "dispBlock" : "dispNone"}>
+                                <span className="red">required</span>
+                            </FormHelperText>
+
+                            {/*Pincode error to be fetched and updated properly*/}
+                            {this.state.saveAddressStatus !== null &&
+                                <FormHelperText >
+                                    <span className="red">Pincode must contain only numbers and must be 6 digits long</span>
+                                </FormHelperText>
+                            }
+                        </FormControl>
+                        <br /><br />
+
+                        <Button variant="contained" color="secondary" onClick={this.saveAddressClickHandler}>SAVE ADDRESS</Button>
+
+                    </TabContainer>
+                }
+
+                {/*Common SnackBar*/}
+                < Snackbar
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }
+                    }
+                    open={this.state.openSnackBar}
+                    autoHideDuration={6000}
+                    onClose={this.handleSnackbarClose}
+                    message={this.state.snackBarMessage}
+                    action={
+                        < React.Fragment >
+                            <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleSnackbarClose}>
+                                <CloseIcon fontSize="small" />
+                            </IconButton>
+                        </React.Fragment>
+                    }
+                />
+
+            </div>
+        )
+    }
+}
+
+class PaymentMode extends Component {
+
+    paymentModeClick = (event) => {
+        this.props.paymentModeSelection(event.target.value);
+    }
+
+    render() {
+
+        return (
+            <div>
+                {/* Radio button for payment modes */}
+                <FormControl component="fieldset">
+                    <FormLabel component="legend">Select Mode of Payment</FormLabel>
+                    <RadioGroup aria-label="paymentMode" name="paymentMode" onChange={this.paymentModeClick}>
+                        {this.props.paymentModes.map(modes => (
+                            <FormControlLabel key={modes.uuid} value={modes.uuid} control={<Radio />} label={modes.payment_name} />
+                        ))}
+                    </RadioGroup>
+                </FormControl>
+            </div>
+        )
+    }
+
+}
 
 export default Checkout;

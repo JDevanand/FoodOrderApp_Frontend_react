@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route } from 'react-router-dom';
 import '@fontsource/roboto';
 import Home from './home/Home';
 import Details from './details/Details';
-import Checkout from './checkout/Checkout';
+import Checkout from './checkoutfunc/Checkout';
 import Profile from './profile/Profile';
 
 

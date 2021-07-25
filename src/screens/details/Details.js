@@ -57,18 +57,7 @@ class Details extends Component {
                 ]
             },
 
-            orderItemDetails: [
-                {
-                    item: {
-                        id: "",
-                        item_name: "",
-                        price: 0,
-                        type: ""
-                    },
-                    quantity: 0,
-                    price: 0
-                }
-            ],
+            orderItemDetails: [],
             cartTotalPrice: 0,
             countofCartItems: 0,
 
@@ -89,6 +78,7 @@ class Details extends Component {
                 this.setState({
                     restaurant: response1
                 })
+                console.log(this.state);
             })
             .catch(err => {
                 console.log(err);
@@ -177,9 +167,11 @@ class Details extends Component {
             return;
         }
 
+        console.log(this.state);
+
         this.props.history.push({
             pathname: '/checkout/',
-            orderBuild: this.state
+            orderBuild: this.state,
         })
     }
 
