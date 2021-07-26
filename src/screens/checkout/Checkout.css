@@ -1,20 +1,47 @@
-.checkout{
+
+.checkout-page-container{
     display: flex;
 }
-.orderStepper{
-
-    width:70%
+.chkoutAddressDetail{
+    height:auto;
+}
+.orderSummaryCard{
+    width: 25%;
+}
+.chkoutAddrestList-container{
+    display: flex;
 }
 
-.red{
-    color:red;
+.chkoutAddressGridList{
+    flex-wrap: nowrap;
+    overflow: auto;
+}
+.chkoutAddressListItemBar{
+    margin-top: 30px;
+    
+}
+
+.chckout-saveAddress-container{
+    justify-content: flex-start;
+    text-align:start;
+}
+
+.chckoutaddressSelectIcon{
+    color:green;
 }
 
 .dispBlock{
-    
-    display: block;
+    display:block;    
 }
 
 .dispNone{
     display: none;
+}
+
+@media screen and (max-width:600px) {
+
+.checkout-page-container{
+    flex-direction: column;
+}
+
 }

@@ -24,6 +24,7 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Icon from '@material-ui/core/Icon';
 
+
 const customStyles = {
     content: {
         top: '50%',
@@ -50,11 +51,11 @@ TabContainer.propTypes = {
 
 class Header extends Component {
 
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
             loggedIn: sessionStorage.getItem("access-token") == null ? false : true,
-            customerFirstName: "",
+            customerFirstName: this.props.customerFirstName !== "" ? this.props.customerFirstName : "",
 
             modalIsOpen: false,
             tabChangeValue: 0,
@@ -72,6 +73,10 @@ class Header extends Component {
             contactRequired: "dispNone",
             contact: "",
             registrationSuccess: false,
+
+
+            isContactValid: "dispNone",
+            isPasswordValid: "dispNone",
 
             openSnackBar: false,
             snackBarMessage: "",
@@ -99,7 +104,10 @@ class Header extends Component {
             registerPasswordRequired: "dispNone",
             registerPassword: "",
             contactRequired: "dispNone",
-            contact: ""
+            contact: "",
+
+            isContactValid: "dispNone",
+            isPasswordValid: "dispNone"
         });
     }
 
@@ -108,7 +116,7 @@ class Header extends Component {
     }
 
     tabChangeHandler = (event, value) => {
-        this.setState({ tabChangeValue:value });
+        this.setState({ tabChangeValue: value });
     }
 
     inputUsernameChangeHandler = (e) => {
@@ -130,21 +138,23 @@ class Header extends Component {
             if (this.readyState === 4) {
 
                 var response = JSON.parse(this.responseText);
-                    if (xhrLogin.status === 200) {
-                        sessionStorage.setItem("access-token", xhrLogin.getResponseHeader("access-token"));                        
-                        that.setState({
-                            loggedIn: true,
-                            customerFirstName: response.first_name,
-                            snackBarMessage: response.message,
-                            openSnackBar: true
-                        });             
-                    }
+                if (xhrLogin.status === 200) {
+                    sessionStorage.setItem("access-token", xhrLogin.getResponseHeader("access-token"));
+                    console.log(response);
+                    that.setState({
+                        loggedIn: true,
+                        customerFirstName: response.first_name,
+                        snackBarMessage: response.message,
+                        openSnackBar: true
+                    });
+                }
 
-                    if (xhrLogin.status !== 200) {
-                        that.setState({
-                            snackBarMessage: response.message
-                        });
-                    }          
+                if (xhrLogin.status !== 200) {
+                    that.setState({
+                        snackBarMessage: response.message,
+                        openSnackBar: true
+                    });
+                }
 
             }
         });
@@ -199,11 +209,26 @@ class Header extends Component {
         this.setState({ contact: e.target.value });
     }
 
+    checkPassword = (inputtxt) => {
+        var matchPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?!.*\s).{8,15}$/;
+        return (inputtxt.value.match(matchPattern));
+    }
+
     registerClickHandler = () => {
         this.state.firstname === "" ? this.setState({ firstnameRequired: "dispBlock" }) : this.setState({ firstnameRequired: "dispNone" });
         this.state.email === "" ? this.setState({ emailRequired: "dispBlock" }) : this.setState({ emailRequired: "dispNone" });
         this.state.registerPassword === "" ? this.setState({ registerPasswordRequired: "dispBlock" }) : this.setState({ registerPasswordRequired: "dispNone" });
         this.state.contact === "" ? this.setState({ contactRequired: "dispBlock" }) : this.setState({ contactRequired: "dispNone" });
+
+
+        (!isNaN(this.state.contact) || this.state.contact.length !== 10)
+            ? this.setState({ isContactValid: "dispBlock" })
+            : this.setState({ isContactValid: "dispNone" });
+
+
+        (this.checkPassword(this.state.registerPassword))
+            ? this.setState({ isPasswordValid: "dispBlock" })
+            : this.setState({ isPasswordValid: "dispNone" });
 
         let dataSignup = JSON.stringify({
             "email_address": this.state.email,
@@ -220,10 +245,10 @@ class Header extends Component {
 
                 let response = JSON.parse(this.responseText);
                 if (xhrSignup.status === 201) {
-                    that.setState({                        
+                    that.setState({
                         snackBarMessage: "Registered successfully! Please login now!",
                         openSnackBar: true,
-                        tabChangeValue:0
+                        tabChangeValue: 0
                     });
                 }
 
@@ -242,7 +267,7 @@ class Header extends Component {
         xhrSignup.send(dataSignup);
     }
 
-    inputSearchRestaurantHandler=(event)=>{
+    inputSearchRestaurantHandler = (event) => {
         //code for handling search restaurant by name
         this.props.onNameSearch(event.target.value);
     }
@@ -266,11 +291,12 @@ class Header extends Component {
 
     handleLoginSbarClose = () => {
         this.setState({
-            openSnackBar: false
+            openSnackBar: false,
+            snackBarMessage: ""
         });
     }
 
-    
+
     handleSignupSbarClose = () => {
         this.setState({
             openSnackBar: false,
@@ -305,7 +331,7 @@ class Header extends Component {
                     {(this.props.showSearchBar) &&
                         <FormControl className="searchBar">
                             <Icon className="searchIcon"><SearchIcon /> </Icon>
-                            <Input id="searchField" type="text" 
+                            <Input id="searchField" type="text"
                                 onChange={this.inputSearchRestaurantHandler} placeholder="Search by Restaurant Name" />
                         </FormControl>
                     }
@@ -410,6 +436,9 @@ class Header extends Component {
                                 <FormHelperText className={this.state.registerPasswordRequired}>
                                     <span className="red">required</span>
                                 </FormHelperText>
+                                <FormHelperText className={this.state.isPasswordValid}>
+                                    <span className="red">Password must contain at least one capital letter, one small letter, one number, and one special character and 8-15 characters long</span>
+                                </FormHelperText>
                             </FormControl>
                             <br /><br />
                             <FormControl required>
@@ -417,6 +446,9 @@ class Header extends Component {
                                 <Input id="contact" type="text" contact={this.state.contact} onChange={this.inputContactChangeHandler} />
                                 <FormHelperText className={this.state.contactRequired}>
                                     <span className="red">required</span>
+                                </FormHelperText>
+                                <FormHelperText className={this.state.isContactValid}>
+                                    <span className="red">Contact No. must contain only numbers and must be 10 digits long</span>
                                 </FormHelperText>
                             </FormControl>
                             <br /><br />
@@ -468,7 +500,7 @@ class Header extends Component {
                             </IconButton>
                         </React.Fragment>
                     }
-                />
+                /> 
             </div>
         )
     }

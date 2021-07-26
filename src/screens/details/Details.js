@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './Details.css';
 import Header from '../../common/header/Header';
-
+import Snackbar from '@material-ui/core/Snackbar';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
@@ -12,6 +12,7 @@ import IconButton from '@material-ui/core/IconButton';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import CloseIcon from '@material-ui/icons/Close';
 
 import ShoppingCartIcon from '@material-ui/icons/ShoppingCart';
 import AddIcon from '@material-ui/icons/Add';
@@ -78,7 +79,6 @@ class Details extends Component {
                 this.setState({
                     restaurant: response1
                 })
-                console.log(this.state);
             })
             .catch(err => {
                 console.log(err);
@@ -87,10 +87,10 @@ class Details extends Component {
 
     addNewItemHandler = (item) => {
         let state = this.state;
-   
+
         let availableItem = state.orderItemDetails.filter(cartItem => cartItem.item.id === item.id);
         let index = state.orderItemDetails.indexOf(availableItem[0]);
-     
+
         //First check if present in cart & update if present
         if (index >= 0) {
             state.orderItemDetails[index]["quantity"] += 1;
@@ -98,9 +98,9 @@ class Details extends Component {
             state.cartTotalPrice += item.price;
             state.countofCartItems += 1;
             this.setState({
-                state : state
-            })           
-          
+                state: state
+            })
+
         } else {
             //if not in cart, add as new item to cart
             let newItem = {};
@@ -111,22 +111,35 @@ class Details extends Component {
             state.cartTotalPrice += newItem.price;
             state.countofCartItems += 1;
             this.setState({
-                state :state
-            })          
+                state: state
+            })
         }
+
+        this.setState({
+            openSnackBar: true,
+            snackBarMessage: "Item added to cart!"
+        })
+
+    }
+
+    handleSnackbarClose = () => {
+        this.setState({
+            openSnackBar: false,
+            snackBarMessage: ""
+        });
     }
 
     addAdditionalItemHandler = (item) => {
-        let state = this.state;  
+        let state = this.state;
         let index = state.orderItemDetails.indexOf(item);
-    
-        state.orderItemDetails[index]["price"] += item.price/item.quantity;        
-        state.orderItemDetails[index]["quantity"] += 1;        
-        state.cartTotalPrice += item.price/item.quantity;        
+
+        state.orderItemDetails[index]["price"] += item.price / item.quantity;
+        state.orderItemDetails[index]["quantity"] += 1;
+        state.cartTotalPrice += item.price / item.quantity;
         state.countofCartItems += 1;
         this.setState({
-            state 
-        })  
+            state
+        })
     }
 
     reduceItemHandler = (item) => {
@@ -134,13 +147,13 @@ class Details extends Component {
         let state = this.state;
         let index = state.orderItemDetails.indexOf(item);
 
-        state.cartTotalPrice -= item.price/item.quantity;
-        state.orderItemDetails[index].price -= item.price/item.quantity;
-        state.orderItemDetails[index].quantity -= 1;       
+        state.cartTotalPrice -= item.price / item.quantity;
+        state.orderItemDetails[index].price -= item.price / item.quantity;
+        state.orderItemDetails[index].quantity -= 1;
         state.countofCartItems -= 1;
 
-        if(state.orderItemDetails[index].quantity===0){
-            state.orderItemDetails.splice(index,1);                       
+        if (state.orderItemDetails[index].quantity === 0) {
+            state.orderItemDetails.splice(index, 1);
         }
 
         this.setState({
@@ -157,7 +170,7 @@ class Details extends Component {
             state.openSnackBar = true;
 
             this.setState({
-                state :state
+                state: state
             });
             return;
         }
@@ -168,12 +181,10 @@ class Details extends Component {
             state.openSnackBar = true;
 
             this.setState({
-                state :state
+                state: state
             })
             return;
         }
-
-        console.log(this.state);
 
         this.props.history.push({
             pathname: '/checkout/',
@@ -188,12 +199,13 @@ class Details extends Component {
 
         return (
             <div>
-                <Header baseUrl={this.props.baseUrl}/>
+                <Header baseUrl={this.props.baseUrl} />
                 <div className="restaurant-details-pic">
                     <Card className="card-detailspage">
                         <CardMedia
                             className="restaurant-image"
                             component="img"
+                            height = "180"
                             alt={restaurant.restaurant_name}
                             image={restaurant.photo_URL}
                             title={restaurant.restaurant_name}
@@ -216,14 +228,14 @@ class Details extends Component {
                                         <div>
                                             <Icon className="fa fa-star" aria-hidden="true" />{restaurant.customer_rating}
                                         </div>
-                                        <Typography variant="headline" component="h2">AVERAGE RATING BY {restaurant.number_customers_rated} CUSTOMERS </Typography>
+                                        <Typography variant="subtitle1" color="textSecondary">AVERAGE RATING BY {restaurant.number_customers_rated} CUSTOMERS </Typography>
                                     </div>
 
                                     <div className="avgPrice">
                                         <div>
                                             <Icon className="fa fa-inr" aria-hidden="true" />{restaurant.average_price}
                                         </div>
-                                        <Typography variant="headline" component="h2">AVERAGE COST FOR TWO PEOPLE</Typography>
+                                        <Typography variant="subtitle1" color="textSecondary">AVERAGE COST FOR TWO PEOPLE</Typography>
                                     </div>
                                 </div>
                             </CardContent>
@@ -239,7 +251,7 @@ class Details extends Component {
 
                             {categoryItem.map(category => (
                                 <div key={category.category_name}>
-                                    <Typography variant="h6" className="categoryTitle">
+                                    <Typography variant="h6" className="categoryTitle" color="textSecondary">
                                         {category.category_name}
                                     </Typography>
 
@@ -252,7 +264,7 @@ class Details extends Component {
                                                     <ListItemIcon>
                                                         {item.item_type === "NON_VEG"
                                                             ? <Icon className="fa fa-circle " style={{ color: 'red' }} />
-                                                            : <Icon className="fa fa-circle " style={{ color: 'green'}} />
+                                                            : <Icon className="fa fa-circle " style={{ color: 'green' }} />
                                                         }
                                                     </ListItemIcon>
                                                     <ListItemText
@@ -283,7 +295,9 @@ class Details extends Component {
                                             </Badge>
                                         </Avatar>
                                     }
-                                    title="My Cart"
+                                    title={<Typography variant="h6" className="categoryTitle" color="textPrimary">
+                                        My Cart
+                                    </Typography>}
                                 />
 
                                 <CardContent>
@@ -322,8 +336,10 @@ class Details extends Component {
                                             ))}
                                     </List>
 
-                                    <Typography>
-                                        TOTAL AMOUNT {this.state.cartTotalPrice}
+                                    <Typography variant="h6" color="textPrimary">
+                                        TOTAL AMOUNT                                       
+                                            <Icon className="fa fa-inr" />                                       
+                                        {this.state.cartTotalPrice}
                                     </Typography>
                                 </CardContent>
 
@@ -336,6 +352,26 @@ class Details extends Component {
                         </Grid>
                     </Grid>
                 </div >
+
+                {/*Common SnackBar*/}
+                < Snackbar
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }
+                    }
+                    open={this.state.openSnackBar}
+                    autoHideDuration={6000}
+                    onClose={this.handleSnackbarClose}
+                    message={this.state.snackBarMessage}
+                    action={
+                        < React.Fragment >
+                            <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleSnackbarClose}>
+                                <CloseIcon fontSize="small" />
+                            </IconButton>
+                        </React.Fragment>
+                    }
+                />
             </div >
         )
     }

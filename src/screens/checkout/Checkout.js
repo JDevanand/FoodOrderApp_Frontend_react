@@ -1,44 +1,354 @@
+
 import React, { Component } from 'react';
-import './Checkout.css';
 import Header from '../../common/header/Header';
 
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardActions from '@material-ui/core/CardActions';
+import { makeStyles } from '@material-ui/core/styles';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepLabel from '@material-ui/core/StepLabel';
+import StepContent from '@material-ui/core/StepContent';
 import Button from '@material-ui/core/Button';
-
+import Paper from '@material-ui/core/Paper';
+import Typography from '@material-ui/core/Typography';
 import Radio from '@material-ui/core/Radio';
 import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
+import InputLabel from '@material-ui/core/InputLabel';
+import Input from '@material-ui/core/Input';
+import { IconButton } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
+import Snackbar from '@material-ui/core/Snackbar';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
-import Typography from '@material-ui/core/Typography';
-import InputLabel from '@material-ui/core/InputLabel';
-import Input from '@material-ui/core/Input';
+import ImageList from '@material-ui/core/ImageList';
+import ImageListItem from '@material-ui/core/ImageListItem';
+import ImageListItemBar from '@material-ui/core/ImageListItemBar';
 import PropTypes from 'prop-types';
+import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
-import CheckCircleIcon from '@material-ui/icons/CheckCircle';
+import './Checkout.css';
+
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardActions from '@material-ui/core/CardActions';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Icon from '@material-ui/core/Icon';
-import CloseIcon from '@material-ui/icons/Close';
-import Snackbar from '@material-ui/core/Snackbar';
 import Divider from '@material-ui/core/Divider';
-import Stepper from '@material-ui/core/Stepper';
-import Step from '@material-ui/core/Step';
-import StepLabel from '@material-ui/core/StepLabel';
-import StepContent from '@material-ui/core/StepContent';
-import Paper from '@material-ui/core/Paper';
-import { IconButton } from '@material-ui/core';
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        width: '70%',
+    },
+    button: {
+        marginTop: theme.spacing(1),
+        marginRight: theme.spacing(1),
+    },
+    actionsContainer: {
+        marginBottom: theme.spacing(2),
+    },
+    resetContainer: {
+        padding: theme.spacing(3),
+    },
+}));
+
+export default function Checkout(props) {
+    const classes = useStyles();
+    const [activeStep, setActiveStep] = React.useState(0);
+    const steps = getSteps();
+    const receivedProps = props.location.orderBuild;
+    const [paymentMode, setPaymentMode] = React.useState("");
+    const [address, setAddress] = React.useState("");
+
+    const [snackBarMessage, setSnackBarMessage] = React.useState("");
+    const [opensnackBar, setOpenSnackBar] = React.useState(false);
+    const [saveAddressTab, setSaveAddressTab] = React.useState(false);
+
+    function handleSnackbarClose() {
+        setSnackBarMessage("");
+        setOpenSnackBar(false);
+    }
+
+    function getSteps() {
+        console.log(props);
+        console.log(props.location.orderBuild);
+        return ['Delivery', 'Payment'];
+    }
+
+    function getStepContent(step) {
+        switch (step) {
+            case 0:
+                return <DeliveryAddress {...props} addressSelection={checkoutAddressSelect} address={address} saveAddressTab={saveAddressTabSelected} />
+            case 1:
+                return <PaymentMode {...props} paymentModeSelection={paymentModeSelect} paymentMode={paymentMode} />
+            default:
+                return 'Unknown step';
+        }
+    }
+
+    const saveAddressTabSelected = (value) => {
+        setSaveAddressTab(value);
+    }
+
+    const paymentModeSelect = (paymentid) => {
+        setPaymentMode(paymentid);
+    }
+
+    function checkoutAddressSelect(addressid) {
+        setAddress(addressid);
+    }
+
+    const handleNext = () => {
+        if (activeStep === 0) {
+            if (address !== "") { setActiveStep((prevActiveStep) => prevActiveStep + 1) };
+        }
+
+        if (activeStep === 1) {
+            if (paymentMode !== "") {
+                setActiveStep((prevActiveStep) => prevActiveStep + 1);
+            }
+        }
+    };
+
+    const handleBack = () => {
+        setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    };
+
+    /* send back to details page but with all the currentt state attributes in props*/
+    const handleChangeClick = () => {
+        setActiveStep(0);
+    }
+
+    const placeOrderClickHandler = () => {
+
+        let billno = 102;
+        let itemQuantityPrice = [];
+        for (let val of receivedProps.orderItemDetails) {
+            let obj = {};
+            obj.item_id = val.item.id;
+            obj.quantity = val.quantity;
+            obj.price = val.price;
+            itemQuantityPrice.push(obj);
+        }
+
+        let dataOrder = JSON.stringify({
+            "address_id": address,
+            "payment_id": paymentMode,
+            "bill": billno,
+            "discount": 0,
+            "coupon_id": "",
+            "restaurant_id": receivedProps.restaurant.id,
+            "item_quantities": itemQuantityPrice
+        });
+
+        let xhrSaveOrder = new XMLHttpRequest();
+        xhrSaveOrder.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+
+                if (xhrSaveOrder.status === 201) {
+
+                    let orderSuccessMessage = "Order placed successfully! Your order ID is" + JSON.parse(this.responseText).id
+                    setSnackBarMessage(orderSuccessMessage);
+                    setOpenSnackBar(true);
+                }
+
+                if (xhrSaveOrder.status !== 201) {
+                    setSnackBarMessage(JSON.parse(this.responseText).message);
+                    setOpenSnackBar(true);
+                }
+
+            }
+        });
+
+        xhrSaveOrder.open("POST", props.baseUrl + "/order");
+        xhrSaveOrder.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
+        xhrSaveOrder.setRequestHeader("Content-Type", "application/json");
+        xhrSaveOrder.send(dataOrder);
+    }
+
+    return (
+        <div>           
+     
+            <Header {...props} />
+        <div className ="checkout-page-container">
+            <div className={classes.root}>
+                <Stepper activeStep={activeStep} orientation="vertical">
+                    {steps.map((label, index) => (
+                        <Step key={label}>
+                            <StepLabel>{label}</StepLabel>
+                            <StepContent>
+                                {getStepContent(index)}
+                                <div className={classes.actionsContainer}>
+                                    <div>
+                                        <Button
+                                            disabled={activeStep === 0}
+                                            onClick={handleBack}
+                                            className={classes.button}
+                                        >
+                                            Back
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={!saveAddressTab ? handleNext : ""}
+                                            className={classes.button}
+                                        >
+                                            {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </StepContent>
+                        </Step>
+                    ))}
+                </Stepper>
+                {activeStep === steps.length && (
+                    <Paper square elevation={0} className={classes.resetContainer}>
+                        <Typography component="h5" variant="h5">View the summary and place your order now!</Typography>
+                        <Button onClick={handleChangeClick} className="btn-change">
+                            CHANGE
+                        </Button>
+                    </Paper>
+                )}
+            </div>
+            <div className="orderSummaryCard">
+
+                <Card className="summaryCard">
+                    <CardHeader
+                        title={<Typography component="h4" variant="h4">Summary</Typography>}                            
+                    />
+                    <br />
+                    <CardContent>
+                        <List>
+                            <ListItemText 
+                                primary={<Typography component="h5" variant="h5">{receivedProps.restaurant.restaurant_name}</Typography>}
+                            />
+                            <br />
+                            {receivedProps.orderItemDetails.map(orderitem => (
+                                <div key={"placeOrder" + orderitem.item.id}>
+                                    <ListItem>
+                                        <ListItemIcon>
+                                            {orderitem.item.item_type === "VEG"
+                                                ? <Icon className="fa fa-stop-circle-o " style={{ color: 'green' }} />
+                                                : <Icon className="fa fa-stop-circle-o " style={{ color: 'red' }} />
+                                            }
+                                        </ListItemIcon>
+                                        <ListItemText primary={orderitem.item.item_name} />
+                                        <ListItemText/>
+                                        <ListItemText primary={orderitem.quantity} />
+                                        <ListItemText/>
+                                        <ListItemIcon>
+                                            <Icon className="fa fa-inr" />
+                                        </ListItemIcon>
+                                        <ListItemText primary={orderitem.price} />
+                                    </ListItem>,
+                                </div>
+                            ))}
+                        </List>
+                        <Divider />
+                        <br />
+                        <Typography component="h5" variant="h5">
+                            NET AMOUNT 
+                            <Icon className="fa fa-inr" /> 
+                            {receivedProps.cartTotalPrice}
+                        </Typography>
+                    </CardContent>
+                    <br />
+                    <CardActions disableSpacing>
+                        <Button variant="contained" color="primary" onClick={placeOrderClickHandler}>
+                            Place Order
+                        </Button>
+                    </CardActions>
+                </Card>
+            </div>
+
+            < Snackbar
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+                open={opensnackBar}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+                message={snackBarMessage}
+                action={
+                    < React.Fragment >
+                        <IconButton size="small" aria-label="close" color="inherit" onClick={{ handleSnackbarClose }}>
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </React.Fragment>
+                }
+            />
+        </div>
+        </div>
+
+    );
+}
+
+
+class PaymentMode extends Component {
+
+    constructor(props) {
+
+        super(props);
+        this.state = {
+            paymentModes: [],
+            paymentSelectValue: props.paymentMode !== "" ? props.paymentMode : ""
+        }
+    }
+
+    paymentModeClick = (event) => {
+        this.setState({
+            paymentSelectValue: event.target.value
+        })
+        this.props.paymentModeSelection(event.target.value);
+    }
+
+    componentWillMount() {
+        //Get all payment methodse
+        fetch(this.props.baseUrl + "payment", {
+            "method": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("access-token")
+            }
+        })
+            .then(response => response.json())
+            .then(response1 => {
+                this.setState({
+                    paymentModes: response1.paymentMethods
+                })
+                console.log(this.state.paymentModes);
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    }
+
+    render() {
+        return (
+            <FormControl component="fieldset">
+                <FormLabel component="legend">Select Mode of Payment</FormLabel>
+                <RadioGroup aria-label="paymentMode" name="paymentMode" value={this.state.paymentSelectValue} onChange={this.paymentModeClick}>
+                    {this.state.paymentModes.map(modes => (
+                        <FormControlLabel
+                            key={modes.id}
+                            value={modes.id}
+                            control={<Radio />}
+                            label={modes.payment_name}
+                        />
+                    ))}
+                </RadioGroup>
+            </FormControl>
+        )
+    }
+}
 
 const TabContainer = function (props) {
     return (
@@ -52,333 +362,17 @@ TabContainer.propTypes = {
     children: PropTypes.node.isRequired
 }
 
-class Checkout extends Component {
-
-    constructor() {
-        super();        
-        this.state = {
-            addresses: [],
-            paymentModes: [],
-            states: [],
-
-            checkoutDetails: {
-                "address_id": "",
-                "payment_id": "",
-                "bill": 0,
-                "discount": 0,
-                "coupon_id": "",
-                "restaurant_id": "",
-                "item_quantities": []
-            },
-
-            activeStep: 0,
-
-            openSnackBar: false,
-            snackBarMessage: ""
-        }
-    }
-
-    componentWillMount() {
-
-        //Set state attributes from details page to checkout page
-        //let currentState = this.state;
-        // currentState = this.props.orderBuild;
-        //this.setState({ currentState });
-
-        //Get customer addresses
-        let that = this;
-        let dataAddress = null;
-        let xhrAddress = new XMLHttpRequest();
-
-        xhrAddress.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-
-                that.setState({
-                    addresses: JSON.parse(this.responseText)
-                });
-
-            }
-        });
-
-        xhrAddress.open("GET", this.props.baseUrl + "/address/customer");//
-        xhrAddress.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
-        xhrAddress.setRequestHeader("Content-Type", "application/json");
-        xhrAddress.send(dataAddress);
-
-
-        //Get payment methods
-        let dataPayment = null;
-        let xhrPayment = new XMLHttpRequest();
-        that = this;
-        xhrPayment.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-
-                that.setState({
-                    paymentModes: JSON.parse(this.responseText)
-                });
-
-            }
-        });
-
-        xhrPayment.open("GET", this.props.baseUrl + "payment");//
-        xhrPayment.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
-        xhrPayment.setRequestHeader("Content-Type", "application/json");
-        xhrPayment.send(dataPayment);
-
-        //Get All States
-        let dataStates = null;
-        let xhrStates = new XMLHttpRequest();
-        that = this;
-        xhrStates.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-
-                that.setState({
-                    states: JSON.parse(this.responseText)
-                });
-
-            }
-        });
-
-        xhrStates.open("GET", this.props.baseUrl + "/states");
-        xhrStates.setRequestHeader("Content-Type", "application/json");
-        xhrStates.send(dataStates);
-
-    }
-
-    handleNextInStepper = () => {
-        let changeStep = this.State.activeStep;
-        this.setState({
-            activeStep: changeStep + 1
-        })
-    }
-
-    handleBackInStepper = () => {
-        let changeStep = this.State.activeStep;
-        this.setState({
-            activeStep: changeStep - 1
-        })
-
-    }
-
-    /* send back to details page but with all the currentt state attributes in props*/
-    handleChangeClickHandler = () => {
-        this.setState({
-            activeStep: 0
-        })
-    }
-
-    placeOrderClickHandler = () => {
-        let dataOrder = JSON.stringify(this.state.checkoutDetails);
-
-        let xhrSaveOrder = new XMLHttpRequest();
-        let that = this;
-        xhrSaveOrder.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-
-                if (xhrSaveOrder.status === 201) {
-
-                    let orderSuccessMessage = "Order placed successfully! Your order ID is" + JSON.parse(this.responseText).id
-                    that.setState({
-                        snackBarMessage: orderSuccessMessage,
-                        openSnackBar: true
-                    });
-                }
-
-                if (xhrSaveOrder.status !== 201) {
-                    that.setState({
-                        snackBarMessage: JSON.parse(this.responseText).message,
-                        openSnackBar: true
-                    });
-                }
-
-            }
-        });
-
-        xhrSaveOrder.open("POST", this.props.baseUrl + "/order");
-        xhrSaveOrder.setRequestHeader("Authorization", "Bearer " + sessionStorage.getItem("access-token"));
-        xhrSaveOrder.setRequestHeader("Content-Type", "application/json");
-        xhrSaveOrder.send(dataOrder);
-    }
-
-    handleSnackbarClose = () => {
-        this.setState({
-            openSnackBar: false,
-            snackBarMessage: ""
-        })
-    }
-
-    getSteps = () => {
-        return ['Delivery', 'Payment'];
-    }
-
-    getStepContent = (step) => {
-        switch (step) {
-            case 0:
-                return <DeliveryAddress addresses={this.state.addresses} states={this.state.states} addressSelection={this.orderAddressSelect} />
-            case 1:
-                return <PaymentMode paymentModes={this.state.paymentModes} paymentModeSelection={this.orderPaymentModeSelect} />
-            default:
-                return 'Unknown step';
-        }
-    }
-
-    orderAddressSelect = (addressid) => {
-        let addressCheckOut = this.state.checkoutDetails;
-        addressCheckOut.address_id = addressid;
-
-        this.setState({
-            checkoutDetails: addressCheckOut
-        })
-
-    }
-
-    orderPaymentModeSelect = (paymentModeId) => {
-        let addressCheckOut = this.state.checkoutDetails;
-        addressCheckOut.payment_id = paymentModeId;
-
-        this.setState({
-            checkoutDetails: addressCheckOut
-        })
-
-    }
-
-    render() {
-
-        var steps = [];
-        steps = this.getSteps();
-
-        return (
-            <div>
-                <Header baseUrl={this.props.baseUrl} />
-                <div className="checkout">
-                    <div className="orderStepper">
-                        <Stepper activeStep={this.state.activeStep} orientation="vertical">
-                            {(steps.length>0) &&
-                            steps.map((label, index) => (
-                                <Step key={label}>
-                                    <StepLabel>{label}</StepLabel>
-                                    <StepContent>
-                                        {this.getStepContent(index)}
-                                        <div className="actionsContainer">
-                                            <div>
-                                                <Button
-                                                    disabled={this.state.activeStep === 0}
-                                                    onClick={this.handleBackInStepper}
-                                                    className="button"
-                                                >
-                                                    Back
-                                                </Button>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={this.handleNextInStepper}
-                                                    className="button"
-                                                >
-                                                    {this.state.activeStep === steps.length - 1 ? 'Finish' : 'Next'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </StepContent>
-                                </Step>
-                            ))}
-                        </Stepper>
-                        {this.state.activeStep === this.steps.length && (
-                            <Paper square elevation={0} className="resetContainer">
-                                <Typography>View the summary and place your order now!</Typography>
-                                <br />
-                                <Button onClick={this.handleChangeClickHandler} className="button">
-                                    CHANGE
-                                </Button>
-                            </Paper>
-                        )}
-                    </div>
-
-                    <div className="orderSummaryCard">
-                        {/* Summary section */}
-                        <Card className="summaryCard">
-                            <CardHeader
-                                title="Summary"
-                            />
-                            <br /><br />
-                            <CardContent>
-                                <List>
-                                    <ListItemText
-                                        primary={this.state.restaurant.restaurant_name}
-                                    />
-                                    <br />
-                                    {this.state.orderItemDetails.map(orderitem => (
-                                        <div key={"placeOrder" + orderitem.item.id}>
-                                            <ListItem>
-                                                <ListItemIcon>
-                                                    {orderitem.item.type === "VEG"
-                                                        ? <Icon className="fa fa-stop-circle-o " style={{ color: 'green[500]' }} />
-                                                        : <Icon className="fa fa-stop-circle-o " style={{ color: 'red[500]' }} />
-                                                    }
-                                                </ListItemIcon>
-                                                <ListItemText
-                                                    primary={orderitem.item.item_name}
-                                                />
-                                                <ListItemText
-                                                    primary={orderitem.quantity}
-                                                />
-                                                <ListItemIcon>
-                                                    <Icon className="fa fa-inr" />
-                                                </ListItemIcon>
-                                                <ListItemText
-                                                    primary={orderitem.price}
-                                                />
-                                            </ListItem>,
-                                        </div>
-                                    ))}
-                                </List>
-                                <Divider />
-                                <br />
-                                <Typography>
-                                    NET AMOUNT {this.state.cartTotalPrice}
-                                </Typography>
-                            </CardContent>
-                            <br />
-                            <CardActions disableSpacing>
-                                <Button variant="contained" color="primary" onClick={this.placeOrderClickHandler}>
-                                    Place Order
-                                </Button>
-                            </CardActions>
-                        </Card>
-                    </div>
-
-                </div >
-
-
-                {/*Common SnackBar*/}
-                < Snackbar
-                    anchorOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }
-                    }
-                    open={this.state.openSnackBar}
-                    autoHideDuration={6000}
-                    onClose={this.handleSnackbarClose}
-                    message={this.state.snackBarMessage}
-                    action={
-                        < React.Fragment >
-                            <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleSnackbarClose}>
-                                <CloseIcon fontSize="small" />
-                            </IconButton>
-                        </React.Fragment>
-                    }
-                />
-            </div >
-        )
-    }
-}
-
 class DeliveryAddress extends Component {
 
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.state = {
+
+            addresses: [],
+            states: [],
             addressTabValue: 0,
+
+            addressSelected: props.address !== "" ? props.address : "",
 
             saveAddressRequest: {
                 "flat_building_name": "",
@@ -387,7 +381,14 @@ class DeliveryAddress extends Component {
                 "pincode": "",
                 "state_uuid": ""
             },
+            isRequiredFlatBuilding: "dispNone",
+            isRequiredLocality: "dispNone",
+            isRequiredCity: "dispNone",
+            isRequiredPincode: "dispNone",
+            isRequiredState: "dispNone",
+            isPincodeValid: "dispNone",
 
+            stateName: "",
             saveAddressStatus: {}, //required to hold error messages from server            
 
             openSnackBar: false,
@@ -395,21 +396,51 @@ class DeliveryAddress extends Component {
         }
     }
 
-    tabChangeHandler = (event, value) => {
-        this.setState({ addressTabValue: value });
+    componentWillMount() {
+        //Get customer addresses
+        this.getAddressList();
+
+        //Get All states
+        fetch(this.props.baseUrl + "/states", {
+            "method": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+            }
+        })
+            .then(response => response.json())
+            .then(response1 => {
+                this.setState({
+                    states: response1.states
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            });
     }
 
-    getStateName = (stateid) => {
-        this.state.states.map(state => {
-            if (state.state_uuid === stateid) return state.state_name;
-            return "";
-        });
+    tabChangeHandler = (event, value) => {
+        this.setState({ addressTabValue: value });
+        if (value === 1) {
+            this.props.saveAddressTab(true);
+        } else {
+            this.props.saveAddressTab(false);
+        }
     }
 
     addressSelectHandler = (addressUuid) => {
-        let checkoutstate = this.state.checkoutDetails;
-        checkoutstate.address = addressUuid;
-        this.setState({ checkoutDetails: checkoutstate });
+
+        console.log(this.state.addressSelected);
+        if (this.state.addressSelected === "") {
+            this.setState({
+                addressSelected: addressUuid
+            })
+            this.props.addressSelection(addressUuid);
+        } else {
+            this.setState({
+                addressSelected: ""
+            })
+            this.props.addressSelection("");
+        }
     }
 
     inputflatBuildingNoChangeHandler = (event) => {
@@ -438,12 +469,18 @@ class DeliveryAddress extends Component {
 
     inputStateChangeHandler = (event) => {
         let saveAddressDetail = this.state.saveAddressRequest;
+        let selectedStateName = "";
 
-        var stateMatch = this.state.states.filter(state => state.state_uuid === event.target.value);
-        saveAddressDetail.state_uuid = stateMatch[0].id;
+        for (let val of this.state.states) {
+            if (val["id"] === event.target.value) {
+                saveAddressDetail.state_uuid = val["id"];
+                selectedStateName = val["state_name"];
+            }
+        }
 
         this.setState({
-            saveAddressRequest: saveAddressDetail
+            saveAddressRequest: saveAddressDetail,
+            stateName: selectedStateName
         })
     }
 
@@ -455,7 +492,34 @@ class DeliveryAddress extends Component {
         });
     }
 
+    handleSnackbarClose =()=>{
+        this.setState({
+            openSnackBar: false,
+            snackBarMessage: ""
+        });
+    }
+
     saveAddressClickHandler = () => {
+
+        this.state.saveAddressRequest.flat_building_name === ""
+            ? this.setState({ isRequiredFlatBuilding: "dispBlock" })
+            : this.setState({ isRequiredFlatBuilding: "dispNone" });
+
+        this.state.saveAddressRequest.locality === "" ? this.setState({ isRequiredLocality: "dispBlock" }) : this.setState({
+            isRequiredLocality: "dispNone"
+        });
+        this.state.saveAddressRequest.city === "" ? this.setState({ isRequiredCity: "dispBlock" }) : this.setState({
+            isRequiredCity: "dispNone"
+        });
+        this.state.saveAddressRequest.state_uuid === "" ? this.setState({ isRequiredState: "dispBlock" }) : this.setState({
+            isRequiredState: "dispNone"
+        });
+        if (this.state.saveAddressRequest.pincode === "") { this.setState({ isRequiredPincode: "dispBlock" }) }
+        else {
+            (!isNaN(this.state.saveAddressRequest.pincode) || this.state.saveAddressRequest.pincode.length !== 6)
+                ? this.setState({ isPincodeValid: "dispBlock" })
+                : this.setState({ isPincodeValid: "dispNone" });
+        }
 
         let dataAddress = JSON.stringify(this.state.saveAddressRequest);
 
@@ -479,6 +543,7 @@ class DeliveryAddress extends Component {
                         openSnackBar: true,
                         addressTabValue: 0,
                     });
+                    that.getAddressList();
                 }
             }
         });
@@ -489,13 +554,32 @@ class DeliveryAddress extends Component {
         xhrSaveAddress.send(dataAddress);
     }
 
+    getAddressList = () => {
+
+        fetch(this.props.baseUrl + "address/customer", {
+            "method": "GET",
+            "headers": {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("access-token")
+            }
+        })
+            .then(response => response.json())
+            .then(response => {
+                this.setState({
+                    addresses: response.addresses
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    }
+
     render() {
 
         let saveAddress = this.state.saveAddressRequest;
 
         return (
             <div>
-
                 <Tabs className="tabs" value={this.state.addressTabValue} onChange={this.tabChangeHandler}>
                     <Tab label="Existing Address" />
                     <Tab label="New Address" />
@@ -503,31 +587,48 @@ class DeliveryAddress extends Component {
 
                 {(this.state.addressTabValue === 0) &&
                     <TabContainer>
-                        <GridList cols={3} className="addressGridList" spacing={2}>
-                            {this.props.addresses.map(address => (
-                                <GridListTile key={"add" + address.id} className="addressDetail" onClick={() => this.addressSelectHandler.bind(this, address.uuid)}>
-                                    <Typography>
-                                        {address.flat_building_name}
-                                        {address.locality}
-                                        {address.city}
-                                        {address.state}
-                                        {address.pincode}
-                                    </Typography>
-                                    <IconButton>
-                                        <CheckCircleIcon />
-                                    </IconButton>
-                                </GridListTile>
-                            ))}
-                        </GridList>
+                        <div className="chkoutAddrestList-container">
+                            <ImageList cols={3} className="chkoutAddressGridList" gap={2} rowHeight='auto'>
+                                {(this.state.addresses !== null) &&
+                                    this.state.addresses.map(address => (
+                                        <ImageListItem key={"add" + address.id} className="chkoutAddressDetail" onClick={() => this.addressSelectHandler(address.id)}>
+                                            <Paper elevation={1} variant='outlined'>
+                                                <p>{address.flat_building_name}</p>
+                                                <p>{address.locality}</p>
+                                                <p>{address.city}</p>
+                                                <p>{address.state.state_name}</p>
+                                                <p>{address.pincode}</p>
+                                            </Paper>
+                                            <ImageListItemBar className="chkoutAddressListItemBar"
+                                                actionIcon={this.state.addressSelected !== address.id
+                                                    ? <IconButton className="chckoutaddressSelectIcon">
+                                                        <CheckCircleIcon />
+                                                    </IconButton>
+                                                    : <IconButton className="chckoutaddressSelectIconGreen">
+                                                        <CheckCircleIcon style={{ color: "green" }} />
+                                                    </IconButton>
+                                                }
+                                                actionPosition='right'
+                                            />
+                                        </ImageListItem>))
+                                }
+
+                                {(this.state.addresses === null) &&
+                                    <p>There are no saved addresses! You can save an address using the 'New Address' tab or using your ‘Profile’ menu option.</p>
+                                }
+
+                            </ImageList>
+                        </div>
                     </TabContainer>
                 }
 
+
                 {this.state.addressTabValue === 1 &&
-                    <TabContainer>
+                    <TabContainer className='chckout-saveAddress-container'>
                         <FormControl required>
                             <InputLabel htmlFor="flatBuildingNo">Flat / Building No.</InputLabel>
                             <Input id="flatBuildingNo" type="text" username={saveAddress.flat_building_name} onChange={this.inputflatBuildingNoChangeHandler} />
-                            <FormHelperText className={saveAddress.flat_building_name === "" ? "dispBlock" : "dispNone"}>
+                            <FormHelperText className={this.state.isRequiredFlatBuilding}>
                                 <span className="red">required</span>
                             </FormHelperText>
                         </FormControl>
@@ -536,7 +637,7 @@ class DeliveryAddress extends Component {
                         <FormControl required>
                             <InputLabel htmlFor="locality">Locality</InputLabel>
                             <Input id="locality" type="text" username={saveAddress.locality} onChange={this.inputlocalityChangeHandler} />
-                            <FormHelperText className={saveAddress.locality === "" ? "dispBlock" : "dispNone"}>
+                            <FormHelperText className={this.state.isRequiredLocality}>
                                 <span className="red">required</span>
                             </FormHelperText>
                         </FormControl>
@@ -545,7 +646,7 @@ class DeliveryAddress extends Component {
                         <FormControl required>
                             <InputLabel htmlFor="city">City</InputLabel>
                             <Input id="city" type="text" username={saveAddress.city} onChange={this.inputcityChangeHandler} />
-                            <FormHelperText className={saveAddress.city === "" ? "dispBlock" : "dispNone"}>
+                            <FormHelperText className={this.state.isRequiredCity}>
                                 <span className="red">required</span>
                             </FormHelperText>
                         </FormControl>
@@ -556,14 +657,15 @@ class DeliveryAddress extends Component {
                             <Select
                                 labelId="demo-simple-select-helper-label"
                                 id="demo-simple-select-helper"
-                                value={this.getStateName(saveAddress.state_uuid)}
+                                value={this.state.id}
                                 onChange={this.inputStateChangeHandler}
+                                placeholder={this.state.stateName}
                             >
-                                {this.props.states.map(state => (
-                                    <MenuItem key={state.state_name} value={state.id}>{state.state_name}</MenuItem>
+                                {this.state.states.map(state => (
+                                    <MenuItem key={state.state_name} value={state.id} >{state.state_name}</MenuItem>
                                 ))}
                             </Select>
-                            <FormHelperText className={saveAddress.state_uuid === "" ? "dispBlock" : "dispNone"}>
+                            <FormHelperText className={this.state.isRequiredState}>
                                 <span className="red">required</span>
                             </FormHelperText>
                         </FormControl>
@@ -572,16 +674,13 @@ class DeliveryAddress extends Component {
                         <FormControl required>
                             <InputLabel htmlFor="pincode">Pincode</InputLabel>
                             <Input id="pincode" type="text" username={saveAddress.pincode} onChange={this.inputPincodeChangeHandler} />
-                            <FormHelperText className={saveAddress.pincode === "" ? "dispBlock" : "dispNone"}>
+                            <FormHelperText className={this.state.isRequiredPincode}>
                                 <span className="red">required</span>
                             </FormHelperText>
+                            <FormHelperText className={this.state.isPincodeValid}>
+                                <span className="red">Pincode must contain only numbers and must be 6 digits long</span>
+                            </FormHelperText>
 
-                            {/*Pincode error to be fetched and updated properly*/}
-                            {this.state.saveAddressStatus !== null &&
-                                <FormHelperText >
-                                    <span className="red">Pincode must contain only numbers and must be 6 digits long</span>
-                                </FormHelperText>
-                            }
                         </FormControl>
                         <br /><br />
 
@@ -614,30 +713,3 @@ class DeliveryAddress extends Component {
         )
     }
 }
-
-class PaymentMode extends Component {
-
-    paymentModeClick = (event) => {
-        this.props.paymentModeSelection(event.target.value);
-    }
-
-    render() {
-
-        return (
-            <div>
-                {/* Radio button for payment modes */}
-                <FormControl component="fieldset">
-                    <FormLabel component="legend">Select Mode of Payment</FormLabel>
-                    <RadioGroup aria-label="paymentMode" name="paymentMode" onChange={this.paymentModeClick}>
-                        {this.props.paymentModes.map(modes => (
-                            <FormControlLabel key={modes.uuid} value={modes.uuid} control={<Radio />} label={modes.payment_name} />
-                        ))}
-                    </RadioGroup>
-                </FormControl>
-            </div>
-        )
-    }
-
-}
-
-export default Checkout;
